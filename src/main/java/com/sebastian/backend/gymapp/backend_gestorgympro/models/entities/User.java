@@ -15,6 +15,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+
 import java.util.List;
 
 
@@ -50,9 +52,17 @@ public class User implements IUser  {
     joinColumns = @JoinColumn(name = "user_id"),
     inverseJoinColumns = @JoinColumn(name = "role_id"),
     uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
-)
+    )
 
     private List<Role> roles;
+
+      // Nueva relación uno a muchos con Payment
+    @OneToMany(mappedBy = "user")
+     private List<Payment> payments;
+
+      // Nueva relación uno a muchos con Subscription
+    @OneToMany(mappedBy = "user")
+    private List<Subscription> subscriptions;
 
     @Transient //un campo que es de la clase, que no se mapea a la base de datos como una columna
     private boolean admin;
