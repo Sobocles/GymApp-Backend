@@ -1,11 +1,58 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payments")
 public class Payment {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Relación muchos a uno con User
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    // Relación muchos a uno con Plan
+    @ManyToOne
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan;
+
+    @OneToOne(mappedBy = "payment")
+    private Subscription subscription;
+
+    @Column(name = "mercado_pago_id", nullable = true)
+    private String mercadoPagoId;
+
+    private String status; // Estado del pago: approved, pending, rejected
+
+    @Column(name = "transaction_amount")
+    private BigDecimal transactionAmount;
+
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "payment_date")
+    private LocalDateTime paymentDate;
+
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
+
+    @Column(name = "external_reference")
+    private String externalReference;
+
+    public String getExternalReference() {
+        return externalReference;
+    }
+    
+    public void setExternalReference(String externalReference) {
+        this.externalReference = externalReference;
+    }
 
     public Long getId() {
         return id;
@@ -47,11 +94,11 @@ public class Payment {
         this.status = status;
     }
 
-    public Double getTransactionAmount() {
+    public BigDecimal getTransactionAmount() {
         return transactionAmount;
     }
 
-    public void setTransactionAmount(Double transactionAmount) {
+    public void setTransactionAmount(BigDecimal transactionAmount) {
         this.transactionAmount = transactionAmount;
     }
 
@@ -79,37 +126,7 @@ public class Payment {
         this.updateDate = updateDate;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    // Relación muchos a uno con User
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    // Relación muchos a uno con Plan
-    @ManyToOne
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
-
-    @Column(name = "mercado_pago_id", nullable = false)
-    private String mercadoPagoId;
-
-    private String status; // Estado del pago: approved, pending, rejected
-
-    @Column(name = "transaction_amount")
-    private Double transactionAmount;
-
-    @Column(name = "payment_method")
-    private String paymentMethod;
-
-    @Column(name = "payment_date")
-    private LocalDateTime paymentDate;
-
-    @Column(name = "update_date")
-    private LocalDateTime updateDate;
-
+  
     // Constructores, getters y setters...
 }
 

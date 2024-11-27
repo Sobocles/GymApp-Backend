@@ -243,7 +243,11 @@ private List<Role> getRoles(IUser user) {
 }
 
 
-
+@Override
+@Transactional(readOnly = true)
+public Optional<User> findByEmail(String email) {
+    return repository.findByEmail(email);
+}
 
 
         

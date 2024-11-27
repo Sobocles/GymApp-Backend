@@ -1,7 +1,6 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.auth.filters;
 
 import java.io.IOException;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,20 +25,21 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.UserReposi
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository; // Dependencia inyectada
 
-        @Autowired
-    private UserRepository userRepository; // Inyectar el UserRepository
-
-    private AuthenticationManager authenticationManager;
-
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
+        this.userRepository = userRepository;
+        setFilterProcessesUrl("/login"); // Asegura que el filtro procese la URL de login
     }
 
     @Override
@@ -55,58 +55,48 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             password = user.getPassword();
     
             System.out.println("Attempting authentication with email: " + email + " and password: " + password);
-            
+    
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+    
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(email, password);
         return authenticationManager.authenticate(authToken);
     }
-    
-    
+
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
-    // Obtener el email que se utilizó para la autenticación
-    String email = ((org.springframework.security.core.userdetails.User) authResult.getPrincipal()).getUsername();
-    Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+        String email = ((org.springframework.security.core.userdetails.User) authResult.getPrincipal()).getUsername();
+        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
     
-        // Determinar los roles del usuario y su nivel de permisos
         boolean isAdmin = roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_ADMIN"));
         boolean isTrainer = roles.stream().anyMatch(r -> r.getAuthority().equals("ROLE_TRAINER"));
     
-        // Log para verificar los roles del usuario
-        System.out.println("Roles del usuario: " + roles);
-        System.out.println("isAdmin: " + isAdmin);
-        System.out.println("isTrainer: " + isTrainer);
-    
-        // Almacenar los roles como lista de mapas en lugar de una cadena JSON
-        List<Map<String, String>> authorities = roles.stream()
-                .map(role -> Map.of("authority", role.getAuthority()))
+        // Convertir las autoridades a una lista de cadenas
+        List<String> authorities = roles.stream()
+                .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-
-            
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        String username = userOpt.map(User::getUsername).orElse("");
     
         Claims claims = Jwts.claims();
         claims.put("authorities", authorities);
         claims.put("isAdmin", isAdmin);
         claims.put("isTrainer", isTrainer);
-        claims.put("email", email); // Incluir email en los claims
-        claims.put("username", username); // Incluir username real en los claims
+        claims.put("email", email);
+    
+        // Obtener el username real desde el repositorio
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        String username = userOpt.map(User::getUsername).orElse("");
+    
+        claims.put("username", username);
     
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setSubject(email) // Mantener email como sujeto
-                .signWith(TokenJwtConfig.SECRET_KEY)
+                .setSubject(email)
+                .signWith(TokenJwtConfig.SECRET_KEY, SignatureAlgorithm.HS256)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + 3600000)) // 1 hora
                 .compact();
-    
-        // Log para verificar el token generado
-        System.out.println("Token JWT generado: " + token);
     
         // Construir el cuerpo de respuesta JSON con isAuth
         Map<String, Object> body = new HashMap<>();
@@ -114,8 +104,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         body.put("token", token);
         body.put("message", String.format("Hola %s, has iniciado sesión con éxito!", username));
         body.put("username", username);
-        body.put("email", email); // Incluir email
-        body.put("roles", authorities); // Enviar la lista de autoridades directamente
+        body.put("email", email);
+        body.put("roles", authorities); // Enviar la lista de autoridades como List<String>
     
         // Log para verificar la estructura del cuerpo de respuesta
         System.out.println("Cuerpo de respuesta JSON: " + body);
@@ -124,9 +114,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(HttpStatus.OK.value());
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
     }
-    
-
-    
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
@@ -140,5 +127,4 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(401);
         response.setContentType("application/json");
     }
-
 }

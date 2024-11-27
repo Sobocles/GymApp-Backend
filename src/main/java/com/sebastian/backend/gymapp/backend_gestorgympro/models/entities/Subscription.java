@@ -21,7 +21,19 @@ public class Subscription {
         @ManyToOne
         @JoinColumn(name = "plan_id", nullable = false)
         private Plan plan;
+
+        @OneToOne
+        @JoinColumn(name = "payment_id")
+        private Payment payment;
     
+        public Payment getPayment() {
+            return payment;
+        }
+
+        public void setPayment(Payment payment) {
+            this.payment = payment;
+        }
+
         @Column(name = "start_date", nullable = false)
         private LocalDate startDate;
     

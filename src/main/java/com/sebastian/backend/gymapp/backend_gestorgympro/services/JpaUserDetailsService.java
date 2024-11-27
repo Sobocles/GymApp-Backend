@@ -1,4 +1,5 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@Service
+@Service("jpaUserDetailsService")
 public class JpaUserDetailsService implements UserDetailsService {
 
     @Autowired
@@ -24,25 +25,28 @@ public class JpaUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        System.out.println("JpaUserDetailsService: Cargando usuario por email: " + email);
         Optional<com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User> o = repository
                 .getUserByEmail(email); // Cambia a un método que busque por correo
-        
+
         if (!o.isPresent()) {
+            System.out.println("JpaUserDetailsService: Usuario no encontrado con email: " + email);
             throw new UsernameNotFoundException(String.format("Email %s no existe en el sistema!", email));
         }
-        
+
         com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User user = o.orElseThrow();
         List<GrantedAuthority> authorities = user.getRoles()
                 .stream()
                 .map(r -> new SimpleGrantedAuthority(r.getName()))
                 .collect(Collectors.toList());
-    
+
+        System.out.println("JpaUserDetailsService: Usuario encontrado: " + email + " con roles: " + authorities);
+
         return new User(
                 user.getEmail(), // Cambia para usar el correo
                 user.getPassword(),
                 true, true, true, true,
                 authorities);
     }
-    
 
 }
