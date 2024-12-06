@@ -1,5 +1,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +24,63 @@ public class PersonalTrainer {
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "monthly_fee", nullable = false)
+    private BigDecimal monthlyFee;
+
+    // Nuevos campos
+    @Column(name = "title", nullable = true)
+    private String title;
+
+    @Column(name = "studies", nullable = true, length = 2000)
+    private String studies;
+
+    @Column(name = "certifications", nullable = true, length = 2000)
+    private String certifications;
+
+    @Column(name = "description", nullable = true, length = 2000)
+    private String description;
+
+    // Getters y Setters para los nuevos campos
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getStudies() {
+        return studies;
+    }
+
+    public void setStudies(String studies) {
+        this.studies = studies;
+    }
+
+    public String getCertifications() {
+        return certifications;
+    }
+
+    public void setCertifications(String certifications) {
+        this.certifications = certifications;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getMonthlyFee() {
+        return monthlyFee;
+    }
+
+    public void setMonthlyFee(BigDecimal monthlyFee) {
+        this.monthlyFee = monthlyFee;
+    }
 
     // Getters y Setters
     public Long getId() {

@@ -62,22 +62,36 @@ public class SpringSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+    
+                        // Rutas públicas
                         .requestMatchers(HttpMethod.GET, "/users", "/users/page/{page}").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/users/{id}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/users/profile").hasAnyRole("ADMIN", "TRAINER", "USER")
-                        .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
-                        .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/payment/notifications").permitAll()
-                        .requestMatchers("/payment/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/plans/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/carousel/images").permitAll()
+    
+                        // Rutas accesibles para ADMIN
+                        .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
+                        .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/plans/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/carousel/images").permitAll()
                         .requestMatchers(HttpMethod.POST, "/carousel/images").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/carousel/images/**").hasRole("ADMIN")
+    
+                        // Rutas accesibles para TRAINER y ADMIN
+                        .requestMatchers(HttpMethod.GET, "/trainers/available").permitAll()
+
+                        .requestMatchers("/trainers/**").hasAnyRole("TRAINER", "ADMIN")
+    
+                        // Rutas accesibles para USER, TRAINER y ADMIN
+                        .requestMatchers("/clients/**").hasAnyRole("USER", "TRAINER", "ADMIN")
+    
+                        // Rutas de pago accesibles para usuarios autenticados
+                        .requestMatchers("/payment/**").authenticated()
+    
+                        // Otras rutas requerirán autenticación
                         .anyRequest().authenticated()
                 )
                 // Añadir JwtValidatorFilter antes de JwtAuthenticationFilter
@@ -86,7 +100,7 @@ public class SpringSecurityConfig {
                 .addFilterAt(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
-
+    
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();

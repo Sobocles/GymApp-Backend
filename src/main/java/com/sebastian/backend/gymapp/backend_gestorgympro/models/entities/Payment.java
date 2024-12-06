@@ -20,7 +20,7 @@ public class Payment {
 
     // Relación muchos a uno con Plan
     @ManyToOne
-    @JoinColumn(name = "plan_id", nullable = false)
+    @JoinColumn(name = "plan_id", nullable = true)
     private Plan plan;
 
     @OneToOne(mappedBy = "payment")
@@ -49,6 +49,26 @@ public class Payment {
     public String getExternalReference() {
         return externalReference;
     }
+
+    @Column(name = "trainer_id", nullable = true)
+private Long trainerId;
+
+@Column(name = "plan_included", nullable = false)
+private boolean planIncluded = false;
+
+@Column(name = "trainer_included", nullable = false)
+private boolean trainerIncluded = false;
+
+// Getters y Setters
+public Long getTrainerId() { return trainerId; }
+public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
+
+public boolean isPlanIncluded() { return planIncluded; }
+public void setPlanIncluded(boolean planIncluded) { this.planIncluded = planIncluded; }
+
+public boolean isTrainerIncluded() { return trainerIncluded; }
+public void setTrainerIncluded(boolean trainerIncluded) { this.trainerIncluded = trainerIncluded; }
+
     
     public void setExternalReference(String externalReference) {
         this.externalReference = externalReference;

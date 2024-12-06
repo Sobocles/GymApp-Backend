@@ -7,8 +7,10 @@ import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
@@ -24,7 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 
-
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +52,9 @@ public class PaymentController {
     @Autowired
     private SubscriptionService subscriptionService;
 
+        @Autowired
+    private PersonalTrainerRepository personalTrainerRepository;
+
     @Value("${mercadopago.successUrl}")
     private String successUrl;
 
@@ -62,66 +67,113 @@ public class PaymentController {
     @PostMapping("/create_preference")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public Preference createPaymentPreference(
-            @RequestParam Long planId) throws MPException {
-                System.out.println("Entró al método createPaymentPreference con planId: " + planId);
-        Plan plan = planService.getPlanById(planId);
+            @RequestParam(required = false) Long planId,
+            @RequestParam(required = false) Long trainerId,
+            @RequestParam(required = false, defaultValue = "false") boolean onlyTrainer
+    ) throws MPException {
         
-        System.out.println("AQUI EL PLAN"+plan);
-        if (plan == null) {
-            throw new IllegalArgumentException("Plan no encontrado");
-        }
-
+        System.out.println("=== createPaymentPreference llamado ===");
+        System.out.println("Parámetros recibidos: planId=" + planId + ", trainerId=" + trainerId + ", onlyTrainer=" + onlyTrainer);
+    
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        System.out.println("PaymentController - Objeto de autenticación: " + authentication);
-        
         if (authentication == null || !authentication.isAuthenticated()) {
-            System.out.println("PaymentController - Usuario no autenticado");
+            System.out.println("Usuario no autenticado!");
             throw new IllegalArgumentException("Usuario no autenticado");
         }
-
-        // Obtener el email del usuario autenticado
-        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        System.out.println("PaymentController - Email del usuario autenticado: " + currentEmail);
+    
+        String currentEmail = authentication.getName();
+        System.out.println("Email del usuario autenticado: " + currentEmail);
         Optional<User> userOpt = userService.findByEmail(currentEmail);
         if (userOpt.isEmpty()) {
+            System.out.println("Usuario no encontrado en base de datos con email: " + currentEmail);
             throw new IllegalArgumentException("Usuario no encontrado");
         }
+    
         User user = userOpt.get();
-
         String payerEmail = user.getEmail();
-        System.out.println("Email del usuario de prueba comprador: " + payerEmail);
-
-    // Crear y guardar el pago en la base de datos
-    Payment payment = new Payment();
-    payment.setUser(user);
-    payment.setPlan(plan);
-    payment.setStatus("pending");
-    payment.setTransactionAmount(plan.getPrice());
-    payment.setPaymentMethod("Mercado Pago");
-    paymentService.savePayment(payment);
-
-    // Obtener el ID del pago y usarlo como external_reference
-    String externalReference = payment.getId().toString();
-    payment.setExternalReference(externalReference);
-    paymentService.savePayment(payment);
-
-    // Crear la preferencia de pago con external_reference
-    Preference preference = mercadoPagoService.createPreference(
-            plan.getName(),
-            1,
-            plan.getPrice(),
-            successUrl,
-            failureUrl,
-            pendingUrl,
-            payerEmail,
-            externalReference // Pasa el external_reference
-    );
-
-    // No es necesario guardar el preference.getId() en el pago
-    // ya que usaremos external_reference para la asociación
-
+        System.out.println("Usuario encontrado: " + user.getUsername() + " (Email: " + payerEmail + ")");
+    
+        BigDecimal totalPrice = BigDecimal.ZERO;
+        Plan plan = null;
+        PersonalTrainer trainer = null;
+    
+        // Verificar logicamente si es onlyTrainer y planId no debe venir
+        if (onlyTrainer && planId != null) {
+            System.out.println("Error: Se solicitó onlyTrainer pero se pasó un planId");
+            throw new IllegalArgumentException("No se puede comprar sólo entrenador si se pasó un planId");
+        }
+    
+        if (planId != null) {
+            plan = planService.getPlanById(planId);
+            if (plan == null) {
+                System.out.println("Plan no encontrado con planId: " + planId);
+                throw new IllegalArgumentException("Plan no encontrado");
+            }
+            System.out.println("Plan encontrado: " + plan.getName() + " precio: " + plan.getPrice());
+            totalPrice = totalPrice.add(plan.getPrice());
+        }
+    
+        if (trainerId != null) {
+            System.out.println("Buscando entrenador con trainerId: " + trainerId);
+            trainer = personalTrainerRepository.findById(trainerId)
+                .orElseThrow(() -> {
+                    System.out.println("No se encontró entrenador con ID: " + trainerId);
+                    return new IllegalArgumentException("Entrenador no encontrado");
+                });
+    
+            System.out.println("Entrenador encontrado: " + trainer.getUser().getUsername() + 
+                               " disponibilidad: " + trainer.getAvailability() +
+                               " monthlyFee: " + trainer.getMonthlyFee());
+            
+            if (!trainer.getAvailability()) {
+                System.out.println("El entrenador no está disponible");
+                throw new IllegalArgumentException("El entrenador no está disponible");
+            }
+            if (trainer.getMonthlyFee() == null) {
+                System.out.println("El entrenador no tiene monthlyFee definido");
+                throw new IllegalArgumentException("El entrenador no tiene definido un monthlyFee");
+            }
+            totalPrice = totalPrice.add(trainer.getMonthlyFee());
+        }
+    
+        if (totalPrice.compareTo(BigDecimal.ZERO) == 0) {
+            System.out.println("No se especificó ni plan ni entrenador. totalPrice=0");
+            throw new IllegalArgumentException("No se especificó plan ni entrenador, no hay nada que comprar");
+        }
+    
+        Payment payment = new Payment();
+        payment.setUser(user);
+        payment.setPlan(plan);
+        payment.setStatus("pending");
+        payment.setTransactionAmount(totalPrice);
+        payment.setPaymentMethod("Mercado Pago");
+        payment.setTrainerId(trainer != null ? trainer.getId() : null);
+        payment.setTrainerIncluded(trainer != null);
+        payment.setPlanIncluded(plan != null);
+        paymentService.savePayment(payment);
+    
+        String externalReference = payment.getId().toString();
+        payment.setExternalReference(externalReference);
+        paymentService.savePayment(payment);
+    
+        System.out.println("Creando preferencia en MercadoPago con totalPrice: " + totalPrice + ", plan: " + (plan != null ? plan.getName() : "Ninguno") + ", entrenadorId: " + (trainer != null ? trainer.getId() : null));
+    
+        Preference preference = mercadoPagoService.createPreference(
+                plan != null ? plan.getName() : "Entrenador",
+                1,
+                totalPrice,
+                successUrl,
+                failureUrl,
+                pendingUrl,
+                payerEmail,
+                externalReference
+        );
+    
+        System.out.println("Preferencia creada en MercadoPago: " + (preference != null ? preference.getId() : "null"));
         return preference;
     }
+    
+
     @PostMapping("/notifications")
     public ResponseEntity<String> receiveNotification(@RequestParam Map<String, String> params) {
         System.out.println("Notificación recibida: " + params);

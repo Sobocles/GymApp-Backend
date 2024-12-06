@@ -12,8 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,15 +23,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.UserRequest;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 
 import jakarta.validation.Valid;
@@ -45,6 +40,8 @@ public class UserController {
 
     @Autowired
     private UserService service;
+
+
 
     @GetMapping
     public List<UserDto> list() {
@@ -79,32 +76,7 @@ public class UserController {
         }
         return ResponseEntity.notFound().build();
     }
-    
-    @PutMapping("/profile")
-    @PreAuthorize("hasAnyRole('ADMIN','TRAINER','USER')")
-    public ResponseEntity<?> updateProfile(
-            @RequestParam(value = "username", required = false) String username,
-            @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "file", required = false) MultipartFile file) {
-        try {
-            UserRequest userRequest = new UserRequest();
-            userRequest.setUsername(username);
-            userRequest.setEmail(email);
-            userRequest.setPassword(password);
-
-            // Obtener el email actual del usuario autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentEmail = authentication.getName();
-
-            UserDto updatedUser = service.updateProfile(userRequest, file, currentEmail);
-            return ResponseEntity.ok(updatedUser);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar el perfil");
-        }
-    }
-
+ 
 
     
     @PostMapping
@@ -116,15 +88,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
     }
 
-    @PostMapping("/{id}/create-trainer")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> createTrainer(
-            @PathVariable Long id,
-            @RequestBody TrainerAssignmentRequest request) {
-        service.assignTrainerRole(id, request.getSpecialization(), request.getExperienceYears(), request.getAvailability());
-        return ResponseEntity.ok("Role de Trainer asignado correctamente y especialización añadida");
-    }
-
+ 
 
     
     @PutMapping("/{id}")
