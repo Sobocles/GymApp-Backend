@@ -72,6 +72,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/carousel/images").permitAll()
     
                         // Rutas accesibles para ADMIN
+                        .requestMatchers(HttpMethod.GET, "/users/dashboard").hasRole("USER")
                         .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/plans/**").hasRole("ADMIN")

@@ -12,7 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +24,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.UserRequest;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
+import org.springframework.security.core.Authentication;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
+
 
 import jakarta.validation.Valid;
 
@@ -41,6 +50,14 @@ public class UserController {
     @Autowired
     private UserService service;
 
+        @Autowired
+    private SubscriptionService subscriptionService;
+
+    @Autowired
+    private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
+    @Autowired
+    private PaymentService paymentService;
 
 
     @GetMapping
@@ -150,7 +167,27 @@ public ResponseEntity<?> registerUser(@Valid @RequestBody User user, BindingResu
 }
 
 
+@GetMapping("/dashboard")
+@PreAuthorize("hasRole('USER')")
+public ResponseEntity<?> getDashboardInfo(Authentication auth) {
+    String email = auth.getName();
+    User user = service.findByEmail(email).orElseThrow();
 
+    // Obtener suscripciones de plan
+    List<Subscription> planSubs = subscriptionService.getSubscriptionsByUserId(user.getId());
+    // Obtener suscripciones de entrenador personal
+    List<PersonalTrainerSubscription> trainerSubs = personalTrainerSubscriptionService.getSubscriptionsByUserId(user.getId());
+    // Obtener pagos del usuario
+    List<PaymentDTO> payments = paymentService.getPaymentsByUserId(user.getId());
+
+    // Crear un objeto de respuesta que muestre ambos estados y los pagos
+    Map<String,Object> dashboardData = new HashMap<>();
+    dashboardData.put("planSubscriptions", planSubs);
+    dashboardData.put("trainerSubscriptions", trainerSubs);
+    dashboardData.put("payments", payments); // Agregamos la lista de pagos
+
+    return ResponseEntity.ok(dashboardData);
+}
 
 
 }

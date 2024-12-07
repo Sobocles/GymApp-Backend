@@ -14,6 +14,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdat
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.mappear.DtoMapperUser;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Role;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
@@ -177,7 +178,6 @@ public void updateTrainerDetails(String email, TrainerUpdateRequest request) {
     personalTrainerRepository.save(pt);
 }
 
-    
 
 
 }
