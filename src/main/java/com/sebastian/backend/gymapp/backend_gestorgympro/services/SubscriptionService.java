@@ -1,41 +1,41 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
 
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDate;
 import java.util.List;
-
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
-import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.SubscriptionRepository;
 
-@Service
-public class SubscriptionService {
-
-    @Autowired
-    private SubscriptionRepository subscriptionRepository;
-
-    public Subscription createSubscription(Subscription subscription) {
-        return subscriptionRepository.save(subscription);
-    }
-
-    public List<Subscription> getSubscriptionsByUserId(Long userId) {
-        return subscriptionRepository.findByUserId(userId);
-    }
-
-    public void createSubscriptionForPayment(Payment payment) {
-        Subscription subscription = new Subscription();
-        subscription.setUser(payment.getUser());
-        subscription.setPlan(payment.getPlan());
-        subscription.setStartDate(LocalDate.now());
-        subscription.setEndDate(LocalDate.now().plusYears(1)); // Por ejemplo, un año
-        subscription.setActive(true);
-        subscription.setPayment(payment); // Establecer el pago asociado
-        subscriptionRepository.save(subscription);
-    }
+public interface SubscriptionService {
     
+    /**
+     * Crea una nueva suscripción.
+     *
+     * @param subscription La suscripción a crear.
+     * @return La suscripción creada.
+     */
+    Subscription createSubscription(Subscription subscription);
+
+    /**
+     * Obtiene todas las suscripciones de un usuario por su ID.
+     *
+     * @param userId El ID del usuario.
+     * @return Lista de suscripciones del usuario.
+     */
+    List<Subscription> getSubscriptionsByUserId(Long userId);
+
+    /**
+     * Crea una suscripción a partir de un pago.
+     *
+     * @param payment El pago asociado a la suscripción.
+     * @return La suscripción creada.
+     */
+    Subscription createSubscriptionForPayment(Payment payment);
     
-
-
+    /**
+     * Verifica si el usuario tiene una suscripción activa que incluye al entrenador especificado.
+     *
+     * @param userId     ID del usuario.
+     * @param trainerId  ID del entrenador.
+     * @return true si tiene una suscripción activa con el entrenador, false en caso contrario.
+     */
+    boolean hasActivePlanWithTrainer(Long userId, Long trainerId);
 }

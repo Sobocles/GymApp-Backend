@@ -32,8 +32,9 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.UserRequ
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService;
-import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.impl.SubscriptionServiceImpl;
+
 import org.springframework.security.core.Authentication;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
@@ -51,7 +52,7 @@ public class UserController {
     private UserService service;
 
         @Autowired
-    private SubscriptionService subscriptionService;
+    private SubscriptionServiceImpl subscriptionService;
 
     @Autowired
     private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
@@ -188,6 +189,7 @@ public ResponseEntity<?> getDashboardInfo(Authentication auth) {
 
     return ResponseEntity.ok(dashboardData);
 }
+
 
 
 }

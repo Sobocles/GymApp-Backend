@@ -1,6 +1,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import jakarta.persistence.*;
 
@@ -40,6 +41,18 @@ public class PersonalTrainer {
 
     @Column(name = "description", nullable = true, length = 2000)
     private String description;
+
+        // Relación Many-to-Many con Plan
+        @ManyToMany(mappedBy = "includedTrainers")
+        private List<Plan> plans;
+
+    public List<Plan> getPlans() {
+            return plans;
+        }
+
+        public void setPlans(List<Plan> plans) {
+            this.plans = plans;
+        }
 
     // Getters y Setters para los nuevos campos
     public String getTitle() {

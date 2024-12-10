@@ -82,15 +82,21 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/carousel/images/**").hasRole("ADMIN")
     
                         // Rutas accesibles para TRAINER y ADMIN
+                            // Rutas accesibles para TRAINER y ADMIN
                         .requestMatchers(HttpMethod.GET, "/trainers/available").permitAll()
-
                         .requestMatchers("/trainers/**").hasAnyRole("TRAINER", "ADMIN")
+
+                       
     
                         // Rutas accesibles para USER, TRAINER y ADMIN
                         .requestMatchers("/clients/**").hasAnyRole("USER", "TRAINER", "ADMIN")
     
                         // Rutas de pago accesibles para usuarios autenticados
                         .requestMatchers("/payment/**").authenticated()
+
+                            // Rutas de Trainer Schedule accesibles para TRAINER y ADMIN
+                            .requestMatchers("/trainer-schedule/**").hasAnyRole("TRAINER", "ADMIN", "USER")
+
     
                         // Otras rutas requerirán autenticación
                         .anyRequest().authenticated()

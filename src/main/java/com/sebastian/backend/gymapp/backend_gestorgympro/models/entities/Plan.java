@@ -36,6 +36,24 @@ public class Plan {
     @JsonIgnore 
     private List<Subscription> subscriptions;
 
+        // Relación Many-to-Many con PersonalTrainer
+        @ManyToMany
+        @JoinTable(
+            name = "plans_trainers",
+            joinColumns = @JoinColumn(name = "plan_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id")
+        )
+        @JsonIgnore // Evita recursión infinita al serializar
+        private List<PersonalTrainer> includedTrainers;
+
+    public List<PersonalTrainer> getIncludedTrainers() {
+            return includedTrainers;
+        }
+
+        public void setIncludedTrainers(List<PersonalTrainer> includedTrainers) {
+            this.includedTrainers = includedTrainers;
+        }
+
     public Long getId() {
         return id;
     }
@@ -94,5 +112,5 @@ public class Plan {
     }
 
 
-    // Constructores, getters y setters...
+    
 }

@@ -10,9 +10,12 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PersonalTrainerRepository extends JpaRepository<PersonalTrainer, Long> {
+
     boolean existsByUserId(Long userId);
+
     List<PersonalTrainer> findByAvailability(Boolean availability);
-    Optional<PersonalTrainer> findByUserId(Long userId); // necesario
+
+    Optional<PersonalTrainer> findByUserId(Long userId); 
 }
 
 

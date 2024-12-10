@@ -9,6 +9,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
@@ -50,7 +51,7 @@ public class PaymentController {
     private UserService userService;
 
     @Autowired
-    private SubscriptionService subscriptionService;
+    private SubscriptionService subscriptionService; // Cambiado a la interfaz
 
     @Autowired
     private PersonalTrainerRepository personalTrainerRepository;
@@ -181,25 +182,25 @@ public class PaymentController {
     @PostMapping("/notifications")
     public ResponseEntity<String> receiveNotification(@RequestParam Map<String, String> params) {
         System.out.println("Notificación recibida: " + params);
-
+    
         String topic = params.get("topic");
         String id = params.get("id");
         String type = params.get("type");
         String dataId = params.get("data.id");
-
+    
         try {
             if ("payment".equals(topic) || "payment".equals(type)) {
                 if (id == null) {
                     id = dataId;
                 }
-
+    
                 // Obtener el detalle del pago desde Mercado Pago
                 PaymentClient paymentClient = new PaymentClient();
                 com.mercadopago.resources.payment.Payment payment = paymentClient.get(Long.parseLong(id));
-
+    
                 // Obtener el externalReference
                 String externalReference = payment.getExternalReference();
-
+    
                 // Actualizar el estado y mercado_pago_id del pago en tu base de datos
                 Optional<Payment> optionalPayment = paymentService.getPaymentByExternalReference(externalReference);
                 if (optionalPayment.isPresent()) {
@@ -211,33 +212,47 @@ public class PaymentController {
                     dbPayment.setMercadoPagoId(payment.getId().toString()); // Actualizar mercado_pago_id
                     dbPayment.setUpdateDate(LocalDateTime.now()); // Actualizar fecha de actualización
                     paymentService.savePayment(dbPayment);
-
+    
                     if ("approved".equals(payment.getStatus().toString())) {
                         // Crear la suscripción al plan si existe plan incluido
                         if (dbPayment.isPlanIncluded()) {
-                            subscriptionService.createSubscriptionForPayment(dbPayment);
+                            Subscription subscription = subscriptionService.createSubscriptionForPayment(dbPayment);
+                            
+                            // Asociar entrenadores incluidos en el plan con el usuario
+                            List<PersonalTrainer> includedTrainers = subscription.getPlan().getIncludedTrainers();
+                            if (includedTrainers != null) {
+                                for (PersonalTrainer trainer : includedTrainers) {
+                                    personalTrainerSubscriptionService.createSubscriptionForTrainerOnly(dbPayment, trainer);
+                                }
+                            }
                         }
-
+    
                         // Crear la suscripción al personal trainer si existe trainer incluido
                         if (dbPayment.isTrainerIncluded()) {
-                            // Llamamos a createSubscriptionForTrainerOnly desde personalTrainerSubscriptionService
-                            personalTrainerSubscriptionService.createSubscriptionForTrainerOnly(dbPayment);
+                            // Obtener el entrenador usando trainerId
+                            Long trainerId = dbPayment.getTrainerId();
+                            PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
+                                .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado con ID: " + trainerId));
+                            
+                            // Crear la suscripción para el entrenador
+                            personalTrainerSubscriptionService.createSubscriptionForTrainerOnly(dbPayment, trainer);
                         }
                     }
-
+    
                 } else {
                     System.out.println("PaymentController - Payment no encontrado con externalReference: " + externalReference);
                 }
             }
             // ... manejar otros tipos de notificaciones si es necesario ...
-
+    
         } catch (MPException | MPApiException e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al procesar la notificación");
         }
-
+    
         return ResponseEntity.ok("Received");
     }
+    
 
     @GetMapping("/my-payments")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
