@@ -22,24 +22,32 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTr
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.RoleRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.UserRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class TrainerServiceImpl implements TrainerService{
+   @Autowired
+    private UserRepository userRepository;
 
-        @Autowired
-        private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
-        @Autowired
-        private RoleRepository roleRepository;
+    @Autowired
+    private PersonalTrainerRepository personalTrainerRepository;
 
-         @Autowired
-         private PersonalTrainerRepository personalTrainerRepository;
+    @Autowired
+    private TrainerClientRepository trainerClientRepository;
 
-        @Autowired
-        private TrainerClientRepository trainerClientRepository;
+    // Agrega estas líneas para inyectar los servicios faltantes
+    @Autowired
+    private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
+    @Autowired
+    private SubscriptionService subscriptionService;
 
         @Transactional
         public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description) {
@@ -123,7 +131,7 @@ public class TrainerServiceImpl implements TrainerService{
     public void removeClientFromTrainer(Long trainerId, Long clientId) {
         // Implementación del método
     }
-
+/* 
         @Override
     @Transactional(readOnly = true)
     public List<UserDto> getAssignedClients(Long trainerId) {
@@ -133,6 +141,25 @@ public class TrainerServiceImpl implements TrainerService{
                 .collect(Collectors.toList());
         return clients;
     }
+*/
+@Override
+@Transactional(readOnly = true)
+public List<UserDto> getAssignedClients(Long trainerId) {
+    List<TrainerClient> trainerClients = trainerClientRepository.findByTrainerId(trainerId);
+    List<UserDto> clients = trainerClients.stream()
+        .map(tc -> DtoMapperUser.builder().setUser(tc.getClient()).build())
+        .filter(clientDto -> {
+            Long clientId = clientDto.getId();
+            // Verificar si el cliente tiene suscripción activa "solo entrenador"
+            boolean hasTrainerOnly = personalTrainerSubscriptionService.findActiveSubscriptionForUser(clientId).isPresent();
+            // Verificar si el cliente tiene un plan activo que incluya al entrenador
+            boolean hasPlanWithTrainer = subscriptionService.hasActivePlanWithTrainer(clientId, trainerId);
+            return hasTrainerOnly || hasPlanWithTrainer;
+        })
+        .collect(Collectors.toList());
+    return clients;
+}
+
 
     @Override
     @Transactional(readOnly = true)
@@ -176,6 +203,11 @@ public void updateTrainerDetails(String email, TrainerUpdateRequest request) {
     if (request.getMonthlyFee() != null) pt.setMonthlyFee(request.getMonthlyFee());
 
     personalTrainerRepository.save(pt);
+}
+
+@Override
+public Optional<PersonalTrainer> findByUserId(Long userId) {
+    return personalTrainerRepository.findByUserId(userId);
 }
 
 

@@ -2,6 +2,7 @@ package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -21,11 +22,18 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrai
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.mappear.DtoMapperUser;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Routine;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
+
+import org.springframework.transaction.annotation.Transactional;
+
 
 @RestController
 @RequestMapping("/trainers")
@@ -36,6 +44,12 @@ public class TrainerController {
 
     @Autowired
     private TrainerService trainerService;
+
+    @Autowired
+private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
+@Autowired
+private SubscriptionService subscriptionService;
 
     @PostMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
@@ -109,7 +123,7 @@ public class TrainerController {
         return ResponseEntity.ok("Cliente asignado al entrenador exitosamente");
     }
     
-
+/* 
         @GetMapping("/clients")
     @PreAuthorize("hasRole('TRAINER')")
     public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentication) {
@@ -122,6 +136,24 @@ public class TrainerController {
         List<UserDto> clients = trainerService.getAssignedClients(trainer.getId());
         return ResponseEntity.ok(clients);
     }
+    */
+
+    @GetMapping("/clients")
+    @PreAuthorize("hasRole('TRAINER')")
+    public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentication) {
+        String email = authentication.getName();
+        Optional<User> trainerOpt = userService.findByEmail(email);
+        if (trainerOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        User trainer = trainerOpt.get();
+    
+        // Llama al servicio, el cual internamente hará la lógica de filtrar clientes.
+        List<UserDto> clients = trainerService.getAssignedClients(trainer.getId());
+        return ResponseEntity.ok(clients);
+    }
+    
+
 
         // Nuevo endpoint para obtener entrenadores disponibles
     @GetMapping("/available")

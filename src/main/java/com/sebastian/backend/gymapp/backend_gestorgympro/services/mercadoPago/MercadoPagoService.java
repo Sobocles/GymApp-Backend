@@ -27,7 +27,7 @@ public class MercadoPagoService {
 
     @PostConstruct
     public void init() throws MPException {
-        System.out.println("Access Token de Mercado Pago: " + accessToken);
+        System.out.println("AQUI ESTA EL ACCES TOKKEN DE MERCADO PAGO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: " + accessToken);
         MercadoPagoConfig.setAccessToken(accessToken);
     }
 
@@ -55,7 +55,7 @@ public class MercadoPagoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(Arrays.asList(itemRequest))
                     .backUrls(backUrls)
-                    .notificationUrl("https://0b4e-2800-150-14e-1f21-e96d-2c23-78cf-c3f4.ngrok-free.app/payment/notifications")
+                    .notificationUrl("https://8f97-2800-150-14e-1f21-306c-c2b3-7fa5-3f90.ngrok-free.app/payment/notifications")
                     .payer(payerRequest)
                     .externalReference(externalReference)
                     .autoReturn("approved")

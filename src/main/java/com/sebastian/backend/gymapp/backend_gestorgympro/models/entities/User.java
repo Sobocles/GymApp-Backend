@@ -34,7 +34,6 @@ public class User implements IUser  {
     
 
     @NotBlank
-    @Size(min = 3, max = 15)
     @Column(unique = true)
     private String username;
 

@@ -2,11 +2,13 @@ package com.sebastian.backend.gymapp.backend_gestorgympro.services;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Routine;
 
 public interface TrainerService {
@@ -33,6 +35,6 @@ public interface TrainerService {
 
     List<PersonalTrainerDto> getAvailableTrainers();
 
-
+    Optional<PersonalTrainer> findByUserId(Long userId);
 }
 

@@ -16,6 +16,8 @@ public interface PersonalTrainerRepository extends JpaRepository<PersonalTrainer
     List<PersonalTrainer> findByAvailability(Boolean availability);
 
     Optional<PersonalTrainer> findByUserId(Long userId); 
+
+   
 }
 
 

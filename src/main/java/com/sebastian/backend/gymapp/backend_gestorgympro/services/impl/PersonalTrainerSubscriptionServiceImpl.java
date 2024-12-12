@@ -13,6 +13,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTraine
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PersonalTrainerSubscriptionServiceImpl implements PersonalTrainerSubscriptionService {
@@ -51,6 +52,14 @@ public class PersonalTrainerSubscriptionServiceImpl implements PersonalTrainerSu
 @Override
 public List<PersonalTrainerSubscription> getSubscriptionsByUserId(Long userId) {
     return personalTrainerSubscriptionRepository.findByUserId(userId);
+}
+
+@Override
+public Optional<PersonalTrainerSubscription> findActiveSubscriptionForUser(Long userId) {
+    List<PersonalTrainerSubscription> subscriptions = personalTrainerSubscriptionRepository.findByUserId(userId);
+    return subscriptions.stream()
+            .filter(PersonalTrainerSubscription::getActive)
+            .findFirst();
 }
 
 }

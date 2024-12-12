@@ -1,7 +1,12 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TimeSlotDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAvailabilityRequest;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerAvailability;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerAvailabilityRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerScheduleService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
@@ -34,6 +39,14 @@ public class TrainerScheduleController {
 
     @Autowired
     private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
+    @Autowired
+    private TrainerAvailabilityRepository trainerAvailabilityRepository;
+
+    @Autowired
+    private PersonalTrainerRepository personalTrainerRepository;
+
+
     @GetMapping("/{trainerId}/weekly-slots")
     @PreAuthorize("hasAnyRole('USER', 'TRAINER', 'ADMIN')")
     public ResponseEntity<?> getWeeklySlots(@PathVariable Long trainerId, Authentication authentication) {
@@ -99,6 +112,26 @@ public class TrainerScheduleController {
         } else {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Slot ya ocupado");
         }
+    }
+
+    @PostMapping("/{trainerId}/availability")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createTrainerAvailability(@PathVariable Long trainerId,
+                                                    @RequestBody TrainerAvailabilityRequest request) {
+        // Verificar si el entrenador existe
+        PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
+                .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado con ID: " + trainerId));
+        
+        // Crear la nueva disponibilidad
+        TrainerAvailability availability = new TrainerAvailability();
+        availability.setTrainer(trainer);
+        availability.setDay(request.getDay());
+        availability.setStartTime(request.getStartTime());
+        availability.setEndTime(request.getEndTime());
+
+        trainerAvailabilityRepository.save(availability);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Disponibilidad creada exitosamente");
     }
 }
 

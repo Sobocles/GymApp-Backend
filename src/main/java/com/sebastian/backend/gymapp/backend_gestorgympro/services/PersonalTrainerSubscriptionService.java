@@ -2,6 +2,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
@@ -14,4 +15,6 @@ public interface PersonalTrainerSubscriptionService {
     List<PersonalTrainerSubscription> getSubscriptionsByUserId(Long userId);
     
     boolean hasActiveTrainerSubscription(Long userId, Long trainerId);
+
+    Optional<PersonalTrainerSubscription> findActiveSubscriptionForUser(Long userId);
 }

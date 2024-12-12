@@ -62,7 +62,7 @@ public class SpringSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-    
+                .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                         // Rutas públicas
                         .requestMatchers(HttpMethod.GET, "/users", "/users/page/{page}").permitAll()
                         .requestMatchers("/login").permitAll()
@@ -74,13 +74,15 @@ public class SpringSecurityConfig {
                         // Rutas accesibles para ADMIN
                         .requestMatchers(HttpMethod.GET, "/users/dashboard").hasRole("USER")
                         .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
+                                      // **Matcher específico para /users/personal-trainer**
+                        .requestMatchers("/users/personal-trainer").hasRole("USER")
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/carousel/images").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/carousel/images/**").hasRole("ADMIN")
-    
+                        
                         // Rutas accesibles para TRAINER y ADMIN
                             // Rutas accesibles para TRAINER y ADMIN
                         .requestMatchers(HttpMethod.GET, "/trainers/available").permitAll()

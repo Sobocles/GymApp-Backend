@@ -26,12 +26,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.UserRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.impl.SubscriptionServiceImpl;
 
@@ -59,6 +61,8 @@ public class UserController {
 
     @Autowired
     private PaymentService paymentService;
+@Autowired
+private TrainerService trainerService;
 
 
     @GetMapping
@@ -188,6 +192,28 @@ public ResponseEntity<?> getDashboardInfo(Authentication auth) {
     dashboardData.put("payments", payments); // Agregamos la lista de pagos
 
     return ResponseEntity.ok(dashboardData);
+}
+
+@GetMapping("/personal-trainer")
+@PreAuthorize("hasRole('USER')") // Permitir solo a usuarios con rol ROLE_USER
+public ResponseEntity<?> getPersonalTrainer(Authentication authentication) {
+    String email = authentication.getName();
+    Optional<User> userOpt = service.findByEmail(email);
+    if (userOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
+    }
+    User user = userOpt.get();
+
+    // Obtener la suscripción activa del usuario
+    Optional<PersonalTrainerSubscription> subscriptionOpt = personalTrainerSubscriptionService.findActiveSubscriptionForUser(user.getId());
+
+    if (subscriptionOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No tienes un entrenador personal asignado");
+    }
+
+    // Obtener el entrenador personal de la suscripción
+    PersonalTrainer trainer = subscriptionOpt.get().getPersonalTrainer();
+    return ResponseEntity.ok(trainer);
 }
 
 

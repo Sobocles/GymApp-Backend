@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/payment")
@@ -174,6 +175,8 @@ public class PaymentController {
                 externalReference
         );
 
+        System.out.println("Preference creada:" + preference.getInitPoint());
+
         System.out.println("Preferencia creada en MercadoPago: " + (preference != null ? preference.getId() : "null"));
         return preference;
     }
@@ -197,6 +200,8 @@ public class PaymentController {
                 // Obtener el detalle del pago desde Mercado Pago
                 PaymentClient paymentClient = new PaymentClient();
                 com.mercadopago.resources.payment.Payment payment = paymentClient.get(Long.parseLong(id));
+                System.out.println("Status del pago: " + payment.getStatus());
+                System.out.println("Detalle del status: " + payment.getStatusDetail());
     
                 // Obtener el externalReference
                 String externalReference = payment.getExternalReference();
