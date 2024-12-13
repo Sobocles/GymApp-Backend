@@ -24,9 +24,11 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdat
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.mappear.DtoMapperUser;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Routine;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
@@ -48,8 +50,11 @@ public class TrainerController {
     @Autowired
 private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
 
-@Autowired
-private SubscriptionService subscriptionService;
+    @Autowired
+    private SubscriptionService subscriptionService;
+
+        @Autowired
+    private TrainerClientRepository trainerClientRepository;
 
     @PostMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
@@ -137,21 +142,33 @@ private SubscriptionService subscriptionService;
         return ResponseEntity.ok(clients);
     }
     */
-
-    @GetMapping("/clients")
-    @PreAuthorize("hasRole('TRAINER')")
-    public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentication) {
-        String email = authentication.getName();
-        Optional<User> trainerOpt = userService.findByEmail(email);
-        if (trainerOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        User trainer = trainerOpt.get();
-    
-        // Llama al servicio, el cual internamente hará la lógica de filtrar clientes.
-        List<UserDto> clients = trainerService.getAssignedClients(trainer.getId());
-        return ResponseEntity.ok(clients);
+@GetMapping("/clients")
+@PreAuthorize("hasRole('TRAINER')")
+public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentication) {
+    String email = authentication.getName();
+    Optional<User> trainerOpt = userService.findByEmail(email);
+    if (trainerOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+    User trainer = trainerOpt.get();
+    
+    // Obtener el PersonalTrainer asociado al User
+    Optional<PersonalTrainer> personalTrainerOpt = trainerService.findByUserId(trainer.getId());
+    if (personalTrainerOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
+    PersonalTrainer personalTrainer = personalTrainerOpt.get();
+    
+    // Ahora usa el ID de PersonalTrainer
+    List<UserDto> clients = trainerService.getAssignedClients(personalTrainer.getId());
+    return ResponseEntity.ok(clients);
+}
+
+
+
+
+
+    
     
 
 

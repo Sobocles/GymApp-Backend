@@ -9,6 +9,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTr
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerAvailabilityRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerScheduleService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.impl.SubscriptionServiceImpl;
 
@@ -44,7 +45,7 @@ public class TrainerScheduleController {
     private TrainerAvailabilityRepository trainerAvailabilityRepository;
 
     @Autowired
-    private PersonalTrainerRepository personalTrainerRepository;
+    private TrainerService trainerService;
 
 
     @GetMapping("/{trainerId}/weekly-slots")
@@ -119,8 +120,9 @@ public class TrainerScheduleController {
     public ResponseEntity<?> createTrainerAvailability(@PathVariable Long trainerId,
                                                     @RequestBody TrainerAvailabilityRequest request) {
         // Verificar si el entrenador existe
-        PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
-                .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado con ID: " + trainerId));
+        PersonalTrainer trainer = trainerService.findPersonalTrainerById(trainerId)
+        .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado con ID: " + trainerId));
+    
         
         // Crear la nueva disponibilidad
         TrainerAvailability availability = new TrainerAvailability();

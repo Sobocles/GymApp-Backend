@@ -10,11 +10,14 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.mercadoPago.MercadoPagoService;
@@ -60,6 +63,14 @@ public class PaymentController {
     // NUEVO: Inyectamos el servicio de PersonalTrainerSubscription
     @Autowired
     private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
+    @Autowired
+private TrainerClientRepository trainerClientRepository;
+
+    @Autowired
+private TrainerService trainerService;
+
+
 
     @Value("${mercadopago.successUrl}")
     private String successUrl;
@@ -180,8 +191,6 @@ public class PaymentController {
         System.out.println("Preferencia creada en MercadoPago: " + (preference != null ? preference.getId() : "null"));
         return preference;
     }
-
-
     @PostMapping("/notifications")
     public ResponseEntity<String> receiveNotification(@RequestParam Map<String, String> params) {
         System.out.println("Notificación recibida: " + params);
@@ -222,25 +231,39 @@ public class PaymentController {
                         // Crear la suscripción al plan si existe plan incluido
                         if (dbPayment.isPlanIncluded()) {
                             Subscription subscription = subscriptionService.createSubscriptionForPayment(dbPayment);
-                            
+    
                             // Asociar entrenadores incluidos en el plan con el usuario
                             List<PersonalTrainer> includedTrainers = subscription.getPlan().getIncludedTrainers();
                             if (includedTrainers != null) {
                                 for (PersonalTrainer trainer : includedTrainers) {
                                     personalTrainerSubscriptionService.createSubscriptionForTrainerOnly(dbPayment, trainer);
+    
+                                    // **Crear entrada en trainer_clients** utilizando el servicio
+                                    Long trainerId = trainer.getId(); // personal_trainer.id
+                                    Long clientUserId = dbPayment.getUser().getId();
+    
+                                    // Utilizar el servicio para asignar el cliente al entrenador
+                                    trainerService.addClientToTrainer(trainerId, clientUserId);
                                 }
                             }
                         }
     
                         // Crear la suscripción al personal trainer si existe trainer incluido
                         if (dbPayment.isTrainerIncluded()) {
-                            // Obtener el entrenador usando trainerId
+                            // Obtener el entrenador usando trainerId (personal_trainer.id)
                             Long trainerId = dbPayment.getTrainerId();
-                            PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
+                            PersonalTrainer trainer = trainerService.findPersonalTrainerById(trainerId)
                                 .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado con ID: " + trainerId));
-                            
+    
                             // Crear la suscripción para el entrenador
                             personalTrainerSubscriptionService.createSubscriptionForTrainerOnly(dbPayment, trainer);
+    
+                            // **Crear entrada en trainer_clients** utilizando el servicio
+                            Long trainerIdFinal = trainer.getId(); // Asegúrate de usar PersonalTrainer.id
+                            Long clientUserIdFinal = dbPayment.getUser().getId();
+    
+                            // Utilizar el servicio para asignar el cliente al entrenador
+                            trainerService.addClientToTrainer(trainerIdFinal, clientUserIdFinal);
                         }
                     }
     

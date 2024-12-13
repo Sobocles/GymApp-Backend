@@ -10,27 +10,29 @@ public class TrainerClient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // El entrenador
+    // El entrenador (PersonalTrainer)
     @ManyToOne
     @JoinColumn(name = "trainer_id", nullable = false)
-    private User trainer;
+    private PersonalTrainer trainer;
 
-    // El cliente
+    // El cliente (User)
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
     private User client;
-
-    // Getters y Setters
 
     public Long getId() {
         return id;
     }
 
-    public User getTrainer() {
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public PersonalTrainer getTrainer() {
         return trainer;
     }
 
-    public void setTrainer(User trainer) {
+    public void setTrainer(PersonalTrainer trainer) {
         this.trainer = trainer;
     }
 
@@ -41,4 +43,6 @@ public class TrainerClient {
     public void setClient(User client) {
         this.client = client;
     }
+
+
 }

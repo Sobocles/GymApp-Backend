@@ -36,5 +36,11 @@ public interface TrainerService {
     List<PersonalTrainerDto> getAvailableTrainers();
 
     Optional<PersonalTrainer> findByUserId(Long userId);
+
+    // En TrainerService
+Optional<PersonalTrainer> findPersonalTrainerById(Long trainerId);
+
+
+
 }
 

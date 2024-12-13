@@ -92,39 +92,40 @@ public class TrainerServiceImpl implements TrainerService{
 
 
 
-   @Override
-    @Transactional
-    public void addClientToTrainer(Long trainerId, Long clientId) {
-        Optional<User> trainerOpt = userRepository.findById(trainerId);
-        Optional<User> clientOpt = userRepository.findById(clientId);
-
-        if (trainerOpt.isEmpty() || clientOpt.isEmpty()) {
-            throw new EntityNotFoundException("Entrenador o cliente no encontrado");
+        @Override
+        @Transactional
+        public void addClientToTrainer(Long trainerId, Long clientId) {
+            // Recuperar el PersonalTrainer por su ID
+            PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
+                .orElseThrow(() -> new EntityNotFoundException("Entrenador no encontrado con ID: " + trainerId));
+        
+            // Recuperar el cliente por su ID
+            User client = userRepository.findById(clientId)
+                .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado con ID: " + clientId));
+        
+            // Verificar que el entrenador tiene el rol 'ROLE_TRAINER'
+            boolean isTrainer = trainer.getUser().getRoles().stream()
+                    .anyMatch(role -> role.getName().equals("ROLE_TRAINER"));
+        
+            if (!isTrainer) {
+                throw new IllegalArgumentException("El usuario no es un entrenador");
+            }
+        
+            // Verificar si ya existe la relación
+            if (trainerClientRepository.existsByTrainerIdAndClientId(trainerId, clientId)) {
+                throw new IllegalArgumentException("El cliente ya está asignado a este entrenador");
+            }
+        
+            // Crear y guardar la relación
+            TrainerClient trainerClient = new TrainerClient();
+            trainerClient.setTrainer(trainer); // Ahora 'trainer' es un PersonalTrainer
+            trainerClient.setClient(client);
+        
+            trainerClientRepository.save(trainerClient);
         }
-
-        User trainer = trainerOpt.get();
-        User client = clientOpt.get();
-
-        // Verificar que el usuario es un entrenador
-        boolean isTrainer = trainer.getRoles().stream()
-                .anyMatch(role -> role.getName().equals("ROLE_TRAINER"));
-
-        if (!isTrainer) {
-            throw new IllegalArgumentException("El usuario no es un entrenador");
-        }
-
-        // Verificar si ya existe la relación
-        if (trainerClientRepository.existsByTrainerIdAndClientId(trainerId, clientId)) {
-            throw new IllegalArgumentException("El cliente ya está asignado a este entrenador");
-        }
-
-        // Crear la relación
-        TrainerClient trainerClient = new TrainerClient();
-        trainerClient.setTrainer(trainer);
-        trainerClient.setClient(client);
-
-        trainerClientRepository.save(trainerClient);
-    }
+        
+        
+        
 
     @Override
     @Transactional
@@ -150,8 +151,8 @@ public List<UserDto> getAssignedClients(Long trainerId) {
         .map(tc -> DtoMapperUser.builder().setUser(tc.getClient()).build())
         .filter(clientDto -> {
             Long clientId = clientDto.getId();
-            // Verificar si el cliente tiene suscripción activa "solo entrenador"
-            boolean hasTrainerOnly = personalTrainerSubscriptionService.findActiveSubscriptionForUser(clientId).isPresent();
+            // Verificar si el cliente tiene suscripción activa con este entrenador
+            boolean hasTrainerOnly = personalTrainerSubscriptionService.hasActiveTrainerSubscription(clientId, trainerId);
             // Verificar si el cliente tiene un plan activo que incluya al entrenador
             boolean hasPlanWithTrainer = subscriptionService.hasActivePlanWithTrainer(clientId, trainerId);
             return hasTrainerOnly || hasPlanWithTrainer;
@@ -159,6 +160,7 @@ public List<UserDto> getAssignedClients(Long trainerId) {
         .collect(Collectors.toList());
     return clients;
 }
+
 
 
     @Override
@@ -208,6 +210,12 @@ public void updateTrainerDetails(String email, TrainerUpdateRequest request) {
 @Override
 public Optional<PersonalTrainer> findByUserId(Long userId) {
     return personalTrainerRepository.findByUserId(userId);
+}
+
+@Override
+@Transactional(readOnly = true)
+public Optional<PersonalTrainer> findPersonalTrainerById(Long trainerId) {
+    return personalTrainerRepository.findById(trainerId);
 }
 
 

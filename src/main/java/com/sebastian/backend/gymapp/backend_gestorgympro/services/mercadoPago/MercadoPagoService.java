@@ -55,7 +55,7 @@ public class MercadoPagoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(Arrays.asList(itemRequest))
                     .backUrls(backUrls)
-                    .notificationUrl("https://8f97-2800-150-14e-1f21-306c-c2b3-7fa5-3f90.ngrok-free.app/payment/notifications")
+                    .notificationUrl("https://8f36-2800-150-14e-1f21-5439-11ad-73d8-6707.ngrok-free.app/payment/notifications")
                     .payer(payerRequest)
                     .externalReference(externalReference)
                     .autoReturn("approved")
