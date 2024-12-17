@@ -103,7 +103,13 @@ private TrainerService trainerService;
     
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
-        System.out.println(user);
+        System.out.println("=== Datos recibidos para crear usuario ===");
+        System.out.println("Username: " + user.getUsername());
+        System.out.println("Email: " + user.getEmail());
+        System.out.println("Admin: " + user.isAdmin());
+        System.out.println("Trainer: " + user.isTrainer());
+        System.out.println("Roles: " + user.getRoles());
+        System.out.println("Profile Image URL: " + user.getProfileImageUrl());
         if(result.hasErrors()){
             return validation(result);
         }

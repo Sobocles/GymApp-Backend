@@ -62,14 +62,19 @@ public class SpringSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/payment/notifications").permitAll()
+
+                .requestMatchers(HttpMethod.POST, "users/register").permitAll()
+                
                         // Rutas públicas
                         .requestMatchers(HttpMethod.GET, "/users", "/users/page/{page}").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/public/**").permitAll()
-                        .requestMatchers("/payment/notifications").permitAll()
+                        
+
                         .requestMatchers(HttpMethod.GET, "/plans/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/carousel/images").permitAll()
+                      
     
                         // Rutas accesibles para ADMIN
                         .requestMatchers(HttpMethod.GET, "/users/dashboard").hasRole("USER")
@@ -82,7 +87,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/plans/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/carousel/images").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/carousel/images/**").hasRole("ADMIN")
-                        
+                 
                         // Rutas accesibles para TRAINER y ADMIN
                             // Rutas accesibles para TRAINER y ADMIN
                         .requestMatchers(HttpMethod.GET, "/trainers/available").permitAll()
@@ -103,25 +108,29 @@ public class SpringSecurityConfig {
                         // Otras rutas requerirán autenticación
                         .anyRequest().authenticated()
                 )
+             
                 // Añadir JwtValidatorFilter antes de JwtAuthenticationFilter
                 .addFilterBefore(jwtValidatorFilter, UsernamePasswordAuthenticationFilter.class)
                 // Añadir JwtAuthenticationFilter en lugar de UsernamePasswordAuthenticationFilter
                 .addFilterAt(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+               
                 .build();
     }
     
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Asegúrate de incluir la URL correcta
+        config.setAllowedOriginPatterns(Arrays.asList("*")); // Cambiar a setAllowedOriginPatterns
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
-
+    
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
     }
+    
+    
 
     @Bean
     FilterRegistrationBean<CorsFilter> corsFilter() {

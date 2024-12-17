@@ -31,10 +31,19 @@ public class JwtValidatorFilter extends OncePerRequestFilter {
     public JwtValidatorFilter() {
     }
 
+
+   
+    
+
+    
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-    
+
+                
+             
         System.out.println("=== Headers recibidos en la solicitud ===");
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {

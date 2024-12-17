@@ -52,16 +52,21 @@ public class TrainerScheduleController {
     @PreAuthorize("hasAnyRole('USER', 'TRAINER', 'ADMIN')")
     public ResponseEntity<?> getWeeklySlots(@PathVariable Long trainerId, Authentication authentication) {
         String email = authentication.getName();
+        System.out.println("Usuario autenticado: " + email);
+    
         Optional<User> userOpt = userService.findByEmail(email);
         if (userOpt.isEmpty()) {
+            System.out.println("Usuario no autenticado.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                                  .body("Usuario no autenticado");
         }
-        User user = userOpt.get();
     
-        // Verificar si el usuario tiene una suscripción activa con este entrenador o un plan que incluye un entrenador
+        User user = userOpt.get();
+        System.out.println("Usuario encontrado: " + user.getId() + " - " + user.getEmail());
+    
         boolean hasSubscription = subscriptionService.hasActivePlanWithTrainer(user.getId(), trainerId) ||
                                    personalTrainerSubscriptionService.hasActiveTrainerSubscription(user.getId(), trainerId);
+        System.out.println("El usuario tiene suscripción activa con el entrenador: " + hasSubscription);
     
         if (!hasSubscription) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -69,8 +74,11 @@ public class TrainerScheduleController {
         }
     
         List<TimeSlotDTO> slots = scheduleService.getWeeklySlotsForTrainer(trainerId);
+        System.out.println("Slots generados para el entrenador " + trainerId + ": " + slots);
+    
         return ResponseEntity.ok(slots);
     }
+    
     
 
     @PostMapping("/book")

@@ -9,15 +9,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.mappear.DtoMapperUser;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Role;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.BodyMeasurementRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.RoleRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
@@ -49,45 +52,51 @@ public class TrainerServiceImpl implements TrainerService{
     @Autowired
     private SubscriptionService subscriptionService;
 
-        @Transactional
-        public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description) {
-            Optional<User> userOptional = userRepository.findById(userId);
-            if (userOptional.isEmpty()) {
-                throw new EntityNotFoundException("Usuario no encontrado con ID: " + userId);
-            }
-        
-            User user = userOptional.get();
-        
-            // Verificar si el rol de ROLE_TRAINER existe
-            Role trainerRole = roleRepository.findByName("ROLE_TRAINER")
-                    .orElseThrow(() -> new EntityNotFoundException("Rol 'ROLE_TRAINER' no encontrado"));
-        
-            // Asignar el rol si no lo tiene
-            if (!user.getRoles().contains(trainerRole)) {
-                user.getRoles().add(trainerRole);
-            }
-        
-            // Verificar si ya existe un registro de PersonalTrainer
-            if (personalTrainerRepository.existsByUserId(userId)) {
-                throw new IllegalArgumentException("Este usuario ya está registrado como personal trainer.");
-            }
-        
-            PersonalTrainer personalTrainer = new PersonalTrainer();
-            personalTrainer.setUser(user);
-            personalTrainer.setSpecialization(specialization);
-            personalTrainer.setExperienceYears(experienceYears);
-            personalTrainer.setAvailability(availability);
-            personalTrainer.setMonthlyFee(monthlyFee);
-        
-            // Asignar los nuevos campos
-            personalTrainer.setTitle(title);
-            personalTrainer.setStudies(studies);
-            personalTrainer.setCertifications(certifications);
-            personalTrainer.setDescription(description);
-        
-            personalTrainerRepository.save(personalTrainer);
-            userRepository.save(user);
-        }
+    @Autowired
+    private BodyMeasurementRepository bodyMeasurementRepository;
+
+  // TrainerServiceImpl.java
+
+@Transactional
+public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description) {
+    Optional<User> userOptional = userRepository.findById(userId);
+    if (userOptional.isEmpty()) {
+        throw new EntityNotFoundException("Usuario no encontrado con ID: " + userId);
+    }
+
+    User user = userOptional.get();
+
+    // Verificar si el rol de ROLE_TRAINER existe
+    Role trainerRole = roleRepository.findByName("ROLE_TRAINER")
+            .orElseThrow(() -> new EntityNotFoundException("Rol 'ROLE_TRAINER' no encontrado"));
+
+    // Asignar el rol si no lo tiene
+    if (!user.getRoles().contains(trainerRole)) {
+        user.getRoles().add(trainerRole);
+    }
+
+    // Verificar si ya existe un registro de PersonalTrainer
+    if (personalTrainerRepository.existsByUserId(userId)) {
+        throw new IllegalArgumentException("Este usuario ya está registrado como personal trainer.");
+    }
+
+    PersonalTrainer personalTrainer = new PersonalTrainer();
+    personalTrainer.setUser(user);
+    personalTrainer.setSpecialization(specialization);
+    personalTrainer.setExperienceYears(experienceYears);
+    personalTrainer.setAvailability(availability);
+    personalTrainer.setMonthlyFee(monthlyFee);
+
+    // Asignar los nuevos campos
+    personalTrainer.setTitle(title);
+    personalTrainer.setStudies(studies);
+    personalTrainer.setCertifications(certifications);
+    personalTrainer.setDescription(description);
+
+    personalTrainerRepository.save(personalTrainer);
+    userRepository.save(user);
+}
+
         
 
 
@@ -217,6 +226,63 @@ public Optional<PersonalTrainer> findByUserId(Long userId) {
 public Optional<PersonalTrainer> findPersonalTrainerById(Long trainerId) {
     return personalTrainerRepository.findById(trainerId);
 }
+
+@Override
+@Transactional
+public void addBodyMeasurement(Long trainerId, Long clientId, BodyMeasurementDto measurementDto) {
+    User client = userRepository.findById(clientId)
+        .orElseThrow(() -> new EntityNotFoundException("Cliente no encontrado"));
+    User trainer = userRepository.findById(trainerId)
+        .orElseThrow(() -> new EntityNotFoundException("Entrenador no encontrado"));
+
+    BodyMeasurement measurement = new BodyMeasurement();
+    measurement.setClient(client);
+    measurement.setTrainer(trainer);
+
+  
+    measurement.setClientName(measurementDto.getClientName());
+
+    measurement.setAge(measurementDto.getAge());
+    measurement.setWeight(measurementDto.getWeight());
+    measurement.setHeight(measurementDto.getHeight());
+    measurement.setBodyFatPercentage(measurementDto.getBodyFatPercentage());
+    measurement.setDate(measurementDto.getDate());
+
+    measurement.setInjuries(measurementDto.getInjuries());
+    measurement.setMedications(measurementDto.getMedications());
+    measurement.setOtherHealthInfo(measurementDto.getOtherHealthInfo());
+
+    measurement.setCurrentlyExercising(measurementDto.getCurrentlyExercising());
+    measurement.setSportsPracticed(measurementDto.getSportsPracticed());
+
+    measurement.setCurrentWeight(measurementDto.getCurrentWeight());
+    measurement.setBmi(measurementDto.getBmi());
+
+    measurement.setRelaxedArm(measurementDto.getRelaxedArm());
+    measurement.setWaist(measurementDto.getWaist());
+    measurement.setMidThigh(measurementDto.getMidThigh());
+    measurement.setFlexedArm(measurementDto.getFlexedArm());
+    measurement.setHips(measurementDto.getHips());
+    measurement.setCalf(measurementDto.getCalf());
+
+    measurement.setTricepFold(measurementDto.getTricepFold());
+    measurement.setSubscapularFold(measurementDto.getSubscapularFold());
+    measurement.setBicepFold(measurementDto.getBicepFold());
+    measurement.setSuprailiacFold(measurementDto.getSuprailiacFold());
+
+    measurement.setSumOfFolds(measurementDto.getSumOfFolds());
+    measurement.setPercentageOfFolds(measurementDto.getPercentageOfFolds());
+    measurement.setFatMass(measurementDto.getFatMass());
+    measurement.setLeanMass(measurementDto.getLeanMass());
+    measurement.setMuscleMass(measurementDto.getMuscleMass());
+
+    measurement.setIdealMinWeight(measurementDto.getIdealMinWeight());
+    measurement.setIdealMaxWeight(measurementDto.getIdealMaxWeight());
+    measurement.setTrainerRecommendations(measurementDto.getTrainerRecommendations());
+
+    bodyMeasurementRepository.save(measurement);
+}
+
 
 
 

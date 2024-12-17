@@ -42,26 +42,32 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     }
 
     
-      @Override
+    @Override
     public boolean hasActivePlanWithTrainer(Long userId, Long trainerId) {
-        // Obtener todas las suscripciones activas del usuario
+        System.out.println("Verificando suscripciones activas para el usuario " + userId + " con el entrenador " + trainerId);
+    
         List<Subscription> activeSubscriptions = subscriptionRepository.findByUserId(userId).stream()
                 .filter(Subscription::getActive)
                 .toList();
-
-        // Verificar si alguna suscripción incluye el entrenador específico
+    
+        System.out.println("Suscripciones activas encontradas: " + activeSubscriptions);
+    
         for (Subscription sub : activeSubscriptions) {
             Plan plan = sub.getPlan();
             if (plan != null && plan.getIncludedTrainers() != null) {
                 for (PersonalTrainer trainer : plan.getIncludedTrainers()) {
+                    System.out.println("Entrenador en el plan: " + trainer.getId());
                     if (trainer.getId().equals(trainerId)) {
+                        System.out.println("Suscripción válida encontrada.");
                         return true;
                     }
                 }
             }
         }
+        System.out.println("No se encontraron suscripciones válidas.");
         return false;
     }
+    
 
 
 }

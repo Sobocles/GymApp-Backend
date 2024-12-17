@@ -34,52 +34,50 @@ public class TrainerScheduleServiceImpl implements TrainerScheduleService {
     @Autowired
     private UserRepository userRepository;
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<TimeSlotDTO> getWeeklySlotsForTrainer(Long trainerId) {
-        // Obtener la fecha actual (día actual)
-        LocalDate today = LocalDate.now();
-        
-        // Obtener el inicio de la semana (por ejemplo Lunes de esta semana)
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-        LocalDate sunday = monday.plusDays(6);
+   @Override
+@Transactional(readOnly = true)
+public List<TimeSlotDTO> getWeeklySlotsForTrainer(Long trainerId) {
+    LocalDate today = LocalDate.now();
+    LocalDate monday = today.with(DayOfWeek.MONDAY);
+    LocalDate sunday = monday.plusDays(6);
 
-        // Obtener las disponibilidades del entrenador
-        List<TrainerAvailability> availabilities = trainerAvailabilityRepository.findByTrainerIdAndDayBetween(trainerId, monday, sunday);
+    System.out.println("Calculando slots para el entrenador: " + trainerId);
+    System.out.println("Rango de fechas: " + monday + " a " + sunday);
 
-        // Convertir disponibilidades en slots
-        List<TimeSlotDTO> slots = new ArrayList<>();
+    List<TrainerAvailability> availabilities = trainerAvailabilityRepository.findByTrainerIdAndDayBetween(trainerId, monday, sunday);
+    System.out.println("Disponibilidades encontradas en la base de datos: " + availabilities);
 
-        for (TrainerAvailability availability : availabilities) {
-            LocalDate date = availability.getDay();
-            LocalTime startTime = availability.getStartTime();
-            LocalTime endTime = availability.getEndTime();
+    List<TimeSlotDTO> slots = new ArrayList<>();
 
-            // Generar intervalos de 1 hora entre startTime y endTime
-            LocalTime slotStart = startTime;
-            while (slotStart.plusHours(1).isBefore(endTime) || slotStart.plusHours(1).equals(endTime)) {
-                LocalTime slotEnd = slotStart.plusHours(1);
+    for (TrainerAvailability availability : availabilities) {
+        LocalDate date = availability.getDay();
+        LocalTime startTime = availability.getStartTime();
+        LocalTime endTime = availability.getEndTime();
+        System.out.println("Procesando disponibilidad: " + date + " " + startTime + " - " + endTime);
 
-                // Construir el slot
-                LocalDateTime start = LocalDateTime.of(date, slotStart);
-                LocalDateTime end = LocalDateTime.of(date, slotEnd);
+        LocalTime slotStart = startTime;
+        while (slotStart.plusHours(1).isBefore(endTime) || slotStart.plusHours(1).equals(endTime)) {
+            LocalTime slotEnd = slotStart.plusHours(1);
+            LocalDateTime start = LocalDateTime.of(date, slotStart);
+            LocalDateTime end = LocalDateTime.of(date, slotEnd);
 
-                // Verificar si el slot ya está reservado
-                boolean booked = bookingRepository.existsByTrainerIdAndSlotStart(trainerId, start);
+            boolean booked = bookingRepository.existsByTrainerIdAndSlotStart(trainerId, start);
+            System.out.println("Slot generado: " + start + " - " + end + ", reservado: " + booked);
 
-                TimeSlotDTO dto = new TimeSlotDTO();
-                dto.setTrainerId(trainerId);
-                dto.setStartDateTime(start);
-                dto.setEndDateTime(end);
-                dto.setAvailable(!booked);
-                slots.add(dto);
+            TimeSlotDTO dto = new TimeSlotDTO();
+            dto.setTrainerId(trainerId);
+            dto.setStartDateTime(start);
+            dto.setEndDateTime(end);
+            dto.setAvailable(!booked);
+            slots.add(dto);
 
-                slotStart = slotEnd;
-            }
+            slotStart = slotEnd;
         }
-
-        return slots;
     }
+
+    System.out.println("Total de slots generados: " + slots.size());
+    return slots;
+}
 
     @Override
     @Transactional

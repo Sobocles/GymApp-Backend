@@ -1,77 +1,18 @@
-package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
+package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "body_measurements")
-public class BodyMeasurement {
+public class BodyMeasurementDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = false)
-    private User client;
-
-    @ManyToOne
-    @JoinColumn(name = "trainer_id", nullable = false)
-    private User trainer;
+    private Integer age; 
 
     private String clientName;
-  
- 
-  
-    private Double weight; // Peso en kg
-    private Double height; // Altura en cm
-    private Double bodyFatPercentage; // Porcentaje de grasa corporal
-    private LocalDateTime date; // Fecha de evaluación
 
-    // Información de salud
-    private String injuries; // Lesiones
-    private String medications; // Medicamentos
-    private String otherHealthInfo; // Otros
-
-    // Información deportiva
-    private Boolean currentlyExercising; // Ejercita actualmente
-    private String sportsPracticed; // Deportes que practica
-
-    // Información IMC
-    private Double currentWeight; // Peso actual
-    private Double bmi; // IMC
-
-    // Perímetros corporales
-    private Double relaxedArm; // Brazo relajado
-    private Double waist; // Cintura
-    private Double midThigh; // Muslo medio
-    private Double flexedArm; // Brazo en contracción
-    private Double hips; // Cadera
-    private Double calf; // Pantorrilla
-
-    // Perfil antropométrico
-    private Double tricepFold;
-    private Double subscapularFold;
-    private Double bicepFold;
-    private Double suprailiacFold;
-
-    // Interpretación de datos
-    private Double sumOfFolds;
-    private Double percentageOfFolds;
-    private Double fatMass;
-    private Double leanMass;
-    private Double muscleMass;
-
-    // Peso ideal
-    private Double idealMinWeight;
-    private Double idealMaxWeight;
-    private String trainerRecommendations;
-
-    private Integer age;
-
+    // Getters y Setters
     public String getClientName() {
         return clientName;
     }
+
     public void setClientName(String clientName) {
         this.clientName = clientName;
     }
@@ -82,24 +23,43 @@ public class BodyMeasurement {
     public void setAge(Integer age) {
         this.age = age;
     }
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public User getClient() {
-        return client;
-    }
-    public void setClient(User client) {
-        this.client = client;
-    }
-    public User getTrainer() {
-        return trainer;
-    }
-    public void setTrainer(User trainer) {
-        this.trainer = trainer;
-    }
+    private Double weight;
+    private Double height;
+    private Double bodyFatPercentage;
+    private LocalDateTime date;
+
+    private String injuries;
+    private String medications;
+    private String otherHealthInfo;
+
+    private Boolean currentlyExercising;
+    private String sportsPracticed;
+
+    private Double currentWeight;
+    private Double bmi;
+
+    private Double relaxedArm;
+    private Double waist;
+    private Double midThigh;
+    private Double flexedArm;
+    private Double hips;
+    private Double calf;
+
+    private Double tricepFold;
+    private Double subscapularFold;
+    private Double bicepFold;
+    private Double suprailiacFold;
+
+    private Double sumOfFolds;
+    private Double percentageOfFolds;
+    private Double fatMass;
+    private Double leanMass;
+    private Double muscleMass;
+
+    private Double idealMinWeight;
+    private Double idealMaxWeight;
+    private String trainerRecommendations;
+
     public Double getWeight() {
         return weight;
     }
@@ -278,3 +238,4 @@ public class BodyMeasurement {
     // Getters y Setters
     // ...
 }
+

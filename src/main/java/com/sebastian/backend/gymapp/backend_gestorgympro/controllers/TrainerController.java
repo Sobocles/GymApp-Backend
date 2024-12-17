@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
@@ -56,41 +57,58 @@ private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
         @Autowired
     private TrainerClientRepository trainerClientRepository;
 
-    @PostMapping("/{id}/assign")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> assignTrainerRole(@PathVariable Long id, @RequestBody TrainerAssignmentRequest request) {
-        trainerService.assignTrainerRole(
-            id,
-            request.getSpecialization(),
-            request.getExperienceYears(),
-            request.getAvailability(),
-            request.getMonthlyFee(),
-            request.getTitle(),          
-            request.getStudies(),
-            request.getCertifications(),
-            request.getDescription()
-        );
-        return ResponseEntity.ok("Rol de Trainer asignado correctamente y especialización añadida");
-    }
+
+// TrainerController.java
+
+@PostMapping("/{id}/assign")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<?> assignTrainerRole(@PathVariable Long id, @RequestBody TrainerAssignmentRequest request) {
+    System.out.println("=== Datos recibidos para asignar entrenador ===");
+    System.out.println("ID del usuario: " + id);
+    System.out.println("Especialización: " + request.getSpecialization());
+    System.out.println("Años de experiencia: " + request.getExperienceYears());
+    System.out.println("Disponibilidad: " + request.getAvailability());
+    System.out.println("Cuota mensual: " + request.getMonthlyFee());
+    System.out.println("Título: " + request.getTitle());
+    System.out.println("Estudios: " + request.getStudies());
+    System.out.println("Certificaciones: " + request.getCertifications());
+    System.out.println("Descripción: " + request.getDescription());
+    
+    trainerService.assignTrainerRole(
+        id,
+        request.getSpecialization(),
+        request.getExperienceYears(),
+        request.getAvailability(),
+        request.getMonthlyFee(),
+        request.getTitle(),          
+        request.getStudies(),
+        request.getCertifications(),
+        request.getDescription()
+    );
+    return ResponseEntity.ok("Rol de Trainer asignado correctamente y especialización añadida");
+}
+
+
     
 
-    @PostMapping("/clients/{clientId}/measurements")
-    @PreAuthorize("hasRole('TRAINER')")
-    public ResponseEntity<?> addBodyMeasurement(
-            @PathVariable Long clientId,
-            @RequestBody BodyMeasurement measurement,
-            Authentication authentication) {
-    
-        String email = authentication.getName();
-        Optional<User> trainerOpt = userService.findByEmail(email);
-        if (!trainerOpt.isPresent()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        User trainer = trainerOpt.get();
-    
-        trainerService.addBodyMeasurement(trainer.getId(), clientId, measurement);
-        return ResponseEntity.ok("Medición corporal añadida exitosamente");
+@PostMapping("/clients/{clientId}/measurements")
+@PreAuthorize("hasRole('TRAINER')")
+public ResponseEntity<?> addBodyMeasurement(
+        @PathVariable Long clientId,
+        @RequestBody BodyMeasurementDto measurementDto,
+        Authentication authentication) {
+
+    String email = authentication.getName();
+    Optional<User> trainerOpt = userService.findByEmail(email);
+    if (trainerOpt.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
+
+    User trainer = trainerOpt.get();
+    trainerService.addBodyMeasurement(trainer.getId(), clientId, measurementDto);
+    return ResponseEntity.ok("Medición corporal añadida exitosamente");
+}
+
     
 
     @PostMapping("/clients/{clientId}/routines")
@@ -163,13 +181,6 @@ public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentic
     List<UserDto> clients = trainerService.getAssignedClients(personalTrainer.getId());
     return ResponseEntity.ok(clients);
 }
-
-
-
-
-
-    
-    
 
 
         // Nuevo endpoint para obtener entrenadores disponibles
