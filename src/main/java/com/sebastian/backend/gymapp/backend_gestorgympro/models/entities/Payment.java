@@ -29,7 +29,7 @@ public class Payment {
     @Column(name = "mercado_pago_id", nullable = true)
     private String mercadoPagoId;
 
-    private String status; // Estado del pago: approved, pending, rejected
+    private String status; 
 
     @Column(name = "transaction_amount")
     private BigDecimal transactionAmount;
@@ -46,28 +46,39 @@ public class Payment {
     @Column(name = "external_reference")
     private String externalReference;
 
-    public String getExternalReference() {
-        return externalReference;
+    @Column(name = "trainer_id", nullable = true)
+    private Long trainerId;
+
+    @Column(name = "plan_included", nullable = false)
+    private boolean planIncluded = false;
+
+    @Column(name = "trainer_included", nullable = false)
+    private boolean trainerIncluded = false;
+
+
+        // Nuevo campo para tipo de servicio
+    @Enumerated(EnumType.STRING)
+    @Column(name = "service_type", nullable = false)
+    private serviceType serviceType;
+
+    public enum serviceType {
+        PLAN,
+        PERSONAL_TRAINER,
+        PLAN_AND_TRAINER,
     }
 
-    @Column(name = "trainer_id", nullable = true)
-private Long trainerId;
+        // Getters y Setters
+        public Long getTrainerId() { return trainerId; }
 
-@Column(name = "plan_included", nullable = false)
-private boolean planIncluded = false;
+        public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
 
-@Column(name = "trainer_included", nullable = false)
-private boolean trainerIncluded = false;
+        public boolean isPlanIncluded() { return planIncluded; }
 
-// Getters y Setters
-public Long getTrainerId() { return trainerId; }
-public void setTrainerId(Long trainerId) { this.trainerId = trainerId; }
+        public void setPlanIncluded(boolean planIncluded) { this.planIncluded = planIncluded; }
 
-public boolean isPlanIncluded() { return planIncluded; }
-public void setPlanIncluded(boolean planIncluded) { this.planIncluded = planIncluded; }
+        public boolean isTrainerIncluded() { return trainerIncluded; }
 
-public boolean isTrainerIncluded() { return trainerIncluded; }
-public void setTrainerIncluded(boolean trainerIncluded) { this.trainerIncluded = trainerIncluded; }
+        public void setTrainerIncluded(boolean trainerIncluded) { this.trainerIncluded = trainerIncluded; }
 
     
     public void setExternalReference(String externalReference) {
@@ -77,7 +88,9 @@ public void setTrainerIncluded(boolean trainerIncluded) { this.trainerIncluded =
     public Long getId() {
         return id;
     }
-
+    public String getExternalReference() {
+        return externalReference;
+    }
     public void setId(Long id) {
         this.id = id;
     }
@@ -147,6 +160,6 @@ public void setTrainerIncluded(boolean trainerIncluded) { this.trainerIncluded =
     }
 
   
-    // Constructores, getters y setters...
+  
 }
 

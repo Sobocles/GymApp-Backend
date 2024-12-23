@@ -68,6 +68,13 @@ public class SubscriptionServiceImpl implements SubscriptionService{
         return false;
     }
     
+    @Override
+public boolean hasAnyActiveSubscription(Long userId) {
+    List<Subscription> subscriptions = subscriptionRepository.findByUserId(userId);
+    // Verificar si existe al menos una suscripción activa
+    return subscriptions.stream().anyMatch(Subscription::getActive);
+}
+
 
 
 }

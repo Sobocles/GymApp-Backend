@@ -9,6 +9,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerClient;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
@@ -371,8 +372,120 @@ private TrainerService trainerService;
         }
     }
 
+    @GetMapping("/total-revenue")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, BigDecimal>> getTotalRevenue() {
+        try {
+            BigDecimal totalRevenue = paymentService.getTotalRevenue();
+            return ResponseEntity.ok(Map.of("totalRevenue", totalRevenue));
+        } catch (Exception e) {
+            System.err.println("Error al obtener la suma total de ingresos: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", BigDecimal.ZERO));
+        }
+    }
+/* 
+    @GetMapping("/revenue-by-service-type/{serviceType}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, BigDecimal>> getRevenueByServiceType(@PathVariable String serviceType) {
+        try {
+            // Convertir el parámetro de ruta a ServiceType enum
+            Payment.serviceType type = Payment.serviceType.valueOf(serviceType.toUpperCase());
+
+            BigDecimal totalRevenue = paymentService.getTotalRevenueByServiceType(type);
+            return ResponseEntity.ok(Map.of(
+                "serviceType", new BigDecimal(type.ordinal()), // Para incluir el tipo de servicio en la respuesta
+                "totalRevenue", totalRevenue
+            ));
+        } catch (IllegalArgumentException e) {
+            // Maneja el caso en que el serviceType proporcionado no es válido
+            return ResponseEntity.badRequest().body(Map.of("error", BigDecimal.ZERO));
+        } catch (Exception e) {
+            System.err.println("Error al obtener la suma total de ingresos por tipo de servicio: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of("error", BigDecimal.ZERO));
+        }
+    }
+*/
+    @GetMapping("/admin-dashboard-revenue")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> getAdminDashboardRevenue() {
+        try {
+            System.out.println("AQUI ENTRO");
+            BigDecimal planRevenue = paymentService.getRevenueByIncludedFlags(true, false); // Solo plan
+            System.out.println(planRevenue);
+            BigDecimal trainerRevenue = paymentService.getRevenueByIncludedFlags(false, true); 
+            System.out.println(trainerRevenue);
+            BigDecimal combinedRevenue = paymentService.getRevenueByIncludedFlags(true, true); // Ambos
+            System.out.println(combinedRevenue);
+           
+
+            Map<String, Object> revenue = paymentService.getAdminDashboardRevenue();
+            return ResponseEntity.ok(revenue);
 
 
+        } catch (Exception e) {
+            System.err.println("Error al obtener los datos del dashboard: " + e.getMessage());
+            return ResponseEntity.status(500).body(Map.of("error", "Error interno del servidor"));
+        }
+    }
+
+    @PostMapping("/create_preference_product")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public Preference createPreferenceForSingleProduct(
+        @RequestParam Long productId,
+        @RequestParam Integer quantity
+    ) throws MPException {
+        // 1. Verificar usuario autenticado
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalArgumentException("Usuario no autenticado");
+        }
+        String userEmail = authentication.getName();
+        User user = userService.findByEmail(userEmail)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+
+        // 2. Buscar el producto en la base de datos
+        Product product = productService.getProductById(productId); // lanza excepción si no existe
+
+        // 3. Calcular precio total
+        BigDecimal unitPrice = product.getPrice(); // asume BigDecimal
+        BigDecimal totalPrice = unitPrice.multiply(BigDecimal.valueOf(quantity));
+
+        // 4. Crear registro Payment en la base de datos (estado pending)
+        Payment payment = new Payment();
+        payment.setUser(user);
+        payment.setStatus("pending");
+        payment.setTransactionAmount(totalPrice);
+        payment.setPaymentMethod("Mercado Pago");
+        
+        // (Opcional) asignar un nuevo campo "serviceType=PRODUCT" o similar, si lo deseas
+        payment.setServiceType(Payment.serviceType.PLAN); // O crea algo: PRODUCT
+        paymentService.savePayment(payment);
+
+        // 5. Generar externalReference y actualizar Payment
+        String externalReference = payment.getId().toString();
+        payment.setExternalReference(externalReference);
+        paymentService.savePayment(payment);
+
+        // 6. Crear la preferencia en Mercado Pago usando tu servicio mercadoPagoService
+        // Aqui agregas 1 item con el "title" = product name, "quantity"= quantity, "unitPrice"= totalPrice/ quantity 
+        // O creas un item con "unitPrice=productPrice" y quantity=...
+        Preference preference = mercadoPagoService.createPreference(
+            product.getName(),
+            quantity,
+            unitPrice, // precio unitario
+            successUrl,
+            failureUrl,
+            pendingUrl,
+            user.getEmail(),
+            externalReference
+        );
+
+        return preference; // Retorna la preferencia, luego en el frontend rediriges a initPoint
+    }
+
+    
     
 
 }

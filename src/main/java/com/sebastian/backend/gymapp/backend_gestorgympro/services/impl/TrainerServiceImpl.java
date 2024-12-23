@@ -284,6 +284,10 @@ public void addBodyMeasurement(Long trainerId, Long clientId, BodyMeasurementDto
 }
 
 
-
+@Override
+@Transactional(readOnly = true)
+public List<BodyMeasurement> getClientBodyMeasurements(Long clientId) {
+    return bodyMeasurementRepository.findByClientId(clientId);
+}
 
 }

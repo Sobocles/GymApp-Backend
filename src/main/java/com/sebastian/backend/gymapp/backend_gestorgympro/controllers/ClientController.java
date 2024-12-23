@@ -19,7 +19,7 @@ public class ClientController {
     private TrainerService trainerService;
 
     @GetMapping("/{clientId}/measurements")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('USER', 'TRAINER', 'ADMIN')")
     public ResponseEntity<List<BodyMeasurement>> getBodyMeasurements(@PathVariable Long clientId) {
         List<BodyMeasurement> measurements = trainerService.getClientBodyMeasurements(clientId);
         return ResponseEntity.ok(measurements);

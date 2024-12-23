@@ -62,6 +62,7 @@ public class SpringSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/group-classes/create").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/payment/notifications").permitAll()
 
                 .requestMatchers(HttpMethod.POST, "users/register").permitAll()
@@ -93,6 +94,20 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/trainers/available").permitAll()
                         .requestMatchers("/trainers/**").hasAnyRole("TRAINER", "ADMIN")
 
+                        // Suponiendo que quieres que los usuarios autenticados vean categorías
+                        .requestMatchers(HttpMethod.GET, "/store/categories").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/store/categories").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/store/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/store/categories/**").hasRole("ADMIN")
+
+
+
+                        .requestMatchers(HttpMethod.GET, "/store/products/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/store/products").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/store/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/store/products/**").hasRole("ADMIN")
+
+
                        
     
                         // Rutas accesibles para USER, TRAINER y ADMIN
@@ -103,7 +118,11 @@ public class SpringSecurityConfig {
 
                             // Rutas de Trainer Schedule accesibles para TRAINER y ADMIN
                             .requestMatchers("/trainer-schedule/**").hasAnyRole("TRAINER", "ADMIN", "USER")
-
+                                 // Aquí agregas las rutas de las clases grupales
+                       
+                        .requestMatchers(HttpMethod.POST, "/group-classes/{classId}/assign-trainer").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/group-classes/available").hasAnyRole("USER", "TRAINER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/group-classes/{classId}/book").hasAnyRole("USER", "TRAINER", "ADMIN")
     
                         // Otras rutas requerirán autenticación
                         .anyRequest().authenticated()

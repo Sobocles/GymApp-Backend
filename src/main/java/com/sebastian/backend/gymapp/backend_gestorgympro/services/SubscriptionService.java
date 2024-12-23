@@ -38,4 +38,6 @@ public interface SubscriptionService {
      * @return true si tiene una suscripción activa con el entrenador, false en caso contrario.
      */
     boolean hasActivePlanWithTrainer(Long userId, Long trainerId);
-}
+
+    boolean hasAnyActiveSubscription(Long userId);
+}   
