@@ -117,6 +117,7 @@ public class JwtValidatorFilter extends OncePerRequestFilter {
     
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    
             SecurityContextHolder.getContext().setAuthentication(authentication);
             chain.doFilter(request, response);
         } catch (JwtException | ClassCastException e) {

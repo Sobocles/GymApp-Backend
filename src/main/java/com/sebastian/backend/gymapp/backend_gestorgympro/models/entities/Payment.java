@@ -56,16 +56,6 @@ public class Payment {
     private boolean trainerIncluded = false;
 
 
-        // Nuevo campo para tipo de servicio
-    @Enumerated(EnumType.STRING)
-    @Column(name = "service_type", nullable = false)
-    private serviceType serviceType;
-
-    public enum serviceType {
-        PLAN,
-        PERSONAL_TRAINER,
-        PLAN_AND_TRAINER,
-    }
 
         // Getters y Setters
         public Long getTrainerId() { return trainerId; }
