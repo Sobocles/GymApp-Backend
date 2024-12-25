@@ -25,8 +25,17 @@ public class PaymentService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    @Autowired
+    private EmailService emailService;
+
     public Payment savePayment(Payment payment) {
-        return paymentRepository.save(payment);
+        Payment savedPayment = paymentRepository.save(payment);
+
+        if ("approved".equals(payment.getStatus())) {
+            sendPurchaseConfirmationEmail(payment);
+        }
+
+        return savedPayment;
     }
 
     public List<PaymentDTO> getPaymentsByUserId(Long userId) {
@@ -83,7 +92,7 @@ public class PaymentService {
         }
 
      
-    
+  /*  
     public BigDecimal getTotalRevenueByServiceType(Payment.serviceType serviceType) {
         System.out.println("Parámetro serviceType recibido: " + serviceType);
         return paymentRepository.getTotalRevenueByServiceType(serviceType);
@@ -93,7 +102,7 @@ public class PaymentService {
     public boolean existsByServiceType(Payment.serviceType serviceType) {
         return paymentRepository.existsByServiceType(serviceType);
     }
-
+ */
     public BigDecimal getRevenueByIncludedFlags(boolean planIncluded, boolean trainerIncluded) {
         return paymentRepository.getRevenueByIncludedFlags(planIncluded, trainerIncluded);
     }
@@ -121,6 +130,22 @@ public class PaymentService {
         dashboardRevenue.put("planRevenue", planRevenue);
 
         return dashboardRevenue;
+    }
+
+ 
+
+    private void sendPurchaseConfirmationEmail(Payment payment) {
+        String email = payment.getUser().getEmail();
+        String subject = "Confirmación de Compra - GymPro";
+        String body = "Hola " + payment.getUser().getUsername() + ",\n\n" +
+                      "Gracias por tu compra. El total fue: $" + payment.getTransactionAmount() + "\n" +
+                      "Detalles:\n" +
+                      (payment.getPlan() != null ? "Plan: " + payment.getPlan().getName() + "\n" : "") +
+                      (payment.getTrainerId() != null ? "Entrenador: " + payment.getTrainerId() + "\n" : "") +
+                      "Estado: " + payment.getStatus() + "\n\n" +
+                      "¡Gracias por confiar en nosotros!";
+        
+        emailService.sendEmail(email, subject, body);
     }
     
     

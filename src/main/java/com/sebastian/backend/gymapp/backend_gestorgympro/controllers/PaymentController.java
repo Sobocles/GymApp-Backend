@@ -15,6 +15,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Trainer
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.EmailService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentCreationService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanService;
@@ -74,6 +75,9 @@ public class PaymentController {
 
     @Autowired
     private PaymentCreationService paymentCreationService;
+
+    @Autowired
+    private EmailService emailService;
 
 
 
@@ -169,7 +173,24 @@ public class PaymentController {
         payment.setPlanIncluded(plan != null);
     
         System.out.println("Creando pago con monto total: " + totalPrice);
-        return paymentCreationService.createPayment(payment, "Compra de Plan/Entrenador");
+            Preference preference = paymentCreationService.createPayment(payment, "Compra de Plan/Entrenador");
+
+            // Nuevo: Enviar correo de confirmación antes del return
+            String emailBody = "Hola " + user.getUsername() + ",\n\n"
+                    + "Tu compra de ";
+            if (plan != null) {
+                emailBody += "el plan '" + plan.getName() + "' ";
+            }
+            if (trainer != null) {
+                emailBody += (plan != null ? "y el entrenador " : "el entrenador ") + trainer.getUser().getUsername() + " ";
+            }
+            emailBody += "se ha registrado con éxito.\n\n"
+                    + "Monto total: $" + totalPrice + "\n"
+                    + "Gracias por tu compra.";
+
+            emailService.sendEmail(user.getEmail(), "Confirmación de compra - GestorGymPro", emailBody);
+
+            return preference;
     }
     
 
@@ -201,9 +222,10 @@ public class PaymentController {
 
         System.out.println("Preparando pago: Usuario=" + user.getEmail() + ", Monto=" + totalPrice);
 
+        Payment savedPayment = paymentService.savePayment(payment);
     
         // 4. Llamar al método createPayment con el objeto Payment
-        return paymentCreationService.createPayment(payment, "Compra de Productos");
+        return paymentCreationService.createPayment(savedPayment, "Compra de Productos");
     }
     
     
@@ -267,7 +289,14 @@ public class PaymentController {
                     // Manejar suscripciones si el estado del pago es "approved"
                     if ("approved".equals(payment.getStatus().toString())) {
                         System.out.println("El pago está aprobado. Procesando suscripciones...");
-    
+
+                        String destinatario = dbPayment.getUser().getEmail();
+                        String asunto = "Confirmación de Pago";
+                        String cuerpo = "Hola " + dbPayment.getUser().getUsername() + ", tu pago se ha realizado con éxito.";
+                        
+                        emailService.sendEmail(destinatario, asunto, cuerpo);
+                        System.out.println("Correo enviado a: " + destinatario);
+                        
                         // Manejo de suscripciones al plan
                         if (dbPayment.isPlanIncluded()) {
                             Subscription subscription = subscriptionService.createSubscriptionForPayment(dbPayment);
