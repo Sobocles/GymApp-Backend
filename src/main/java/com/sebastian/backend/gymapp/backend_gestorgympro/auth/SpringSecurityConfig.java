@@ -118,6 +118,7 @@ public class SpringSecurityConfig {
 
                             // Rutas de Trainer Schedule accesibles para TRAINER y ADMIN
                             .requestMatchers("/trainer-schedule/**").hasAnyRole("TRAINER", "ADMIN", "USER")
+
                                  // Aquí agregas las rutas de las clases grupales
                        
                         .requestMatchers(HttpMethod.POST, "/group-classes/{classId}/assign-trainer").hasRole("ADMIN")

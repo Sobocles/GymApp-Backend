@@ -1,9 +1,12 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ActiveClientInfoDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
@@ -42,9 +45,13 @@ public interface TrainerService {
     // En TrainerService
 Optional<PersonalTrainer> findPersonalTrainerById(Long trainerId);
 
+    /**
+     * Retorna la lista de clientes que tienen un plan o sub personal con este entrenador,
+     * con la información de las fechas de suscripción.
+     */
+    List<ActiveClientInfoDTO> getActiveClientsInfoForTrainer(Long personalTrainerId);
 
-
-
+    List<PersonalTrainerDto> getAvailableTrainersForSlot(LocalDate day, LocalTime startTime, LocalTime endTime);
 
 }
 

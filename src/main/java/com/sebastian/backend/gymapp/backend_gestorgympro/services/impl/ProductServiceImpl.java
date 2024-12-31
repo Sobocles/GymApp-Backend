@@ -7,7 +7,6 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProductService
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 
 @Service

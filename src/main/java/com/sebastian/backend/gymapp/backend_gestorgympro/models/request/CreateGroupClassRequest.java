@@ -7,6 +7,14 @@ public class CreateGroupClassRequest {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private int maxParticipants;
+    private Long trainerId; // Nuevo campo opcional
+
+    public Long getTrainerId() {
+        return trainerId;
+    }
+    public void setTrainerId(Long trainerId) {
+        this.trainerId = trainerId;
+    }
     // Getters y setters
     public String getClassName() {
         return className;

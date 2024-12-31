@@ -26,13 +26,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
          * @param serviceType El tipo de servicio para filtrar los pagos.
          * @return La suma total de los pagos filtrados como BigDecimal.
          */
-        @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p WHERE p.serviceType = :serviceType")
-        BigDecimal getTotalRevenueByServiceType(@Param("serviceType") Payment.serviceType serviceType);
+
 
         @Query("SELECT SUM(p.transactionAmount) FROM Payment p WHERE p.plan.name = :planType")
         BigDecimal getRevenueByPlanType(@Param("planType") String planType);
 
-        boolean existsByServiceType(Payment.serviceType serviceType);
+
 
         @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) " +
         "FROM Payment p " +
@@ -46,7 +45,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
                                         "GROUP BY p.plan.name")
                                  List<Object[]> getRevenueGroupedByPlanName();
                                  
-                                        
+         List<Payment> findByUserIdAndStatus(Long userId, String status);                                
 }
 
 

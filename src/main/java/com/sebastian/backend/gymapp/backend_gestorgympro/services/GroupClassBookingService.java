@@ -48,18 +48,18 @@ public class GroupClassBookingService {
         // Para simplificar, asumamos que si el usuario tiene cualquier suscripción activa (plan o entrenador), puede reservar
         boolean hasActivePlan = subscriptionService.hasAnyActiveSubscription(user.getId()) ||
                                 !personalTrainerSubscriptionService.getSubscriptionsByUserId(user.getId()).isEmpty();
+
+        System.out.println("plan activo"+hasActivePlan);
+
         if(!hasActivePlan) {
             throw new IllegalArgumentException("No tienes plan activo para reservar esta clase");
         }
 
         // Verificar ventana de tiempo: desde 12h antes hasta 1h antes
         LocalDateTime classStart = gc.getStartTime();
-        LocalDateTime earliestBooking = classStart.minusHours(12);
-        LocalDateTime latestBooking = classStart.minusHours(1);
+   
 
-        if (now.isBefore(earliestBooking) || now.isAfter(latestBooking)) {
-            throw new IllegalArgumentException("No puedes reservar fuera del rango permitido");
-        }
+      
 
         // Verificar que no haya comenzado la clase
         if (now.isAfter(classStart)) {
@@ -76,6 +76,7 @@ public class GroupClassBookingService {
         if (groupClassBookingRepository.existsByUserIdAndGroupClassId(user.getId(), classId)) {
             throw new IllegalArgumentException("Ya tienes una reserva en esta clase");
         }
+        
 
         // Crear reserva
         GroupClassBooking booking = new GroupClassBooking();

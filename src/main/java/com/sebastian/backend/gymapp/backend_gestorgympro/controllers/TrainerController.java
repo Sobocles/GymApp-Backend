@@ -1,6 +1,11 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,8 +21,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ActiveClientInfoDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
@@ -183,13 +190,7 @@ public ResponseEntity<List<UserDto>> getAssignedClients(Authentication authentic
 }
 
 
-        // Nuevo endpoint para obtener entrenadores disponibles
-    @GetMapping("/available")
-    public ResponseEntity<List<PersonalTrainerDto>> getAvailableTrainers() {
-        
-        List<PersonalTrainerDto> trainers = trainerService.getAvailableTrainers();
-        return ResponseEntity.ok(trainers);
-    }
+
 
     @PutMapping("/update_details")
 @PreAuthorize("hasRole('TRAINER')")
@@ -199,5 +200,46 @@ public ResponseEntity<?> updateTrainerDetails(@RequestBody TrainerUpdateRequest 
     return ResponseEntity.ok("Datos del entrenador actualizados con éxito");
 }
 
+        @GetMapping("/active-clients-info")
+        @PreAuthorize("hasRole('TRAINER')")
+        public ResponseEntity<List<ActiveClientInfoDTO>> getActiveClientsInfo(Authentication authentication) {
+            // 1. Encontrar al User entrenador
+            String email = authentication.getName();
+            Optional<User> trainerUserOpt = userService.findByEmail(email);
+            if (trainerUserOpt.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            }
+            User trainerUser = trainerUserOpt.get();
 
+            // 2. Encontrar su PersonalTrainer
+            Optional<PersonalTrainer> ptOpt = trainerService.findByUserId(trainerUser.getId());
+
+            if (ptOpt.isEmpty()) {
+                // Si no está registrado como trainer
+                return ResponseEntity.badRequest().body(Collections.emptyList());
+            }
+            Long personalTrainerId = ptOpt.get().getId();
+
+            // 3. Delegar toda la lógica al servicio
+            List<ActiveClientInfoDTO> infoList = trainerService.getActiveClientsInfoForTrainer(personalTrainerId);
+
+            return ResponseEntity.ok(infoList);
+        }
+
+        @GetMapping("/findByUserId/{userId}")
+    @PreAuthorize("hasRole('TRAINER')") 
+    // ^ OJO: Ajusta según quieras quién puede consultar.
+    public ResponseEntity<Map<String, Object>> getTrainerByUserId(@PathVariable Long userId) {
+        return trainerService.findByUserId(userId)
+            .map(pt -> {
+                // Devolvemos un JSON con { id: xx, ... } o lo que necesites
+                Map<String, Object> response = new HashMap<>();
+                response.put("id", pt.getId()); 
+                response.put("username", pt.getUser().getUsername());
+                response.put("specialization", pt.getSpecialization());
+                return ResponseEntity.ok(response);
+            })
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+        
 }

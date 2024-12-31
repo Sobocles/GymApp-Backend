@@ -1,5 +1,6 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.GroupClassDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.GroupClass.GroupClass;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.CreateGroupClassRequest;
@@ -45,6 +46,16 @@ public class GroupClassController {
             request.getEndTime(), 
             request.getMaxParticipants()
         );
+    
+        // Si se proporciona un trainerId, asignarlo
+        if (request.getTrainerId() != null) {
+            try {
+                groupClassService.assignTrainerToClass(gc.getId(), request.getTrainerId());
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            }
+        }
+    
         return ResponseEntity.status(HttpStatus.CREATED).body(gc);
     }
     
@@ -66,19 +77,10 @@ public class GroupClassController {
     @GetMapping("/available")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'TRAINER')")
     public ResponseEntity<?> listAvailableClasses() {
-        List<GroupClass> futureClasses = groupClassService.findFutureClasses();
-        LocalDateTime now = LocalDateTime.now();
-        List<GroupClass> filtered = futureClasses.stream()
-            .filter(gc -> {
-                // 12 horas antes y 1 hora antes del inicio
-                LocalDateTime earliest = gc.getStartTime().minusHours(12);
-                LocalDateTime latest = gc.getStartTime().minusHours(1);
-                // La clase debe estar dentro del rango actual de reserva y no iniciada
-                return now.isAfter(earliest) && now.isBefore(latest);
-            })
-            .toList();
-        return ResponseEntity.ok(filtered);
+        List<GroupClassDto> futureClasses = groupClassService.findFutureClasses(); 
+        return ResponseEntity.ok(futureClasses);
     }
+    
 
     /**
      * Reservar una clase grupal (USER con plan o USER con trainer)
@@ -99,5 +101,13 @@ public class GroupClassController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+
+    @GetMapping("/{classId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'TRAINER')")
+    public ResponseEntity<GroupClassDto> getClassDetails(@PathVariable Long classId) {
+        GroupClassDto classDetails = groupClassService.getClassDetails(classId);
+        return ResponseEntity.ok(classDetails);
     }
 }

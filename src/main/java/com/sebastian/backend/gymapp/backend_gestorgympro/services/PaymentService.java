@@ -38,31 +38,26 @@ public class PaymentService {
         return savedPayment;
     }
 
-    public List<PaymentDTO> getPaymentsByUserId(Long userId) {
-        List<Payment> payments = paymentRepository.findByUserId(userId);
-        return payments.stream().map(payment -> {
-            PaymentDTO dto = new PaymentDTO();
-            dto.setId(payment.getId());
-    
-            // Si el plan es nulo, ponle un valor por defecto, por ejemplo "Solo Entrenador"
-            String planName = (payment.getPlan() != null) ? payment.getPlan().getName() : "Sin Plan (Solo Entrenador)";
-            
-            dto.setPlanName(planName);
-            dto.setPaymentDate(payment.getPaymentDate());
-            dto.setPaymentMethod(payment.getPaymentMethod());
-            dto.setTransactionAmount(payment.getTransactionAmount());
-    
-            // Obtener la suscripción asociada
-            Optional<Subscription> subscriptionOpt = subscriptionRepository.findByPaymentId(payment.getId());
-            if (subscriptionOpt.isPresent()) {
-                Subscription subscription = subscriptionOpt.get();
-                dto.setSubscriptionStartDate(subscription.getStartDate());
-                dto.setSubscriptionEndDate(subscription.getEndDate());
-            }
-    
-            return dto;
-        }).collect(Collectors.toList());
-    }
+   public List<PaymentDTO> getPaymentsByUserId(Long userId) {
+    List<Payment> payments = paymentRepository.findByUserIdAndStatus(userId, "approved");  // Filtrar desde BD
+    return payments.stream().map(payment -> {
+        PaymentDTO dto = new PaymentDTO();
+        dto.setId(payment.getId());
+        dto.setPlanName(payment.getPlan() != null ? payment.getPlan().getName() : "Sin Plan");
+        dto.setPaymentDate(payment.getPaymentDate());
+        dto.setPaymentMethod(payment.getPaymentMethod());
+        dto.setTransactionAmount(payment.getTransactionAmount());
+        
+        Optional<Subscription> subscriptionOpt = subscriptionRepository.findByPaymentId(payment.getId());
+        subscriptionOpt.ifPresent(subscription -> {
+            dto.setSubscriptionStartDate(subscription.getStartDate());
+            dto.setSubscriptionEndDate(subscription.getEndDate());
+        });
+
+        return dto;
+    }).collect(Collectors.toList());
+}
+
     
 
     public Optional<Payment> getPaymentByMercadoPagoId(String mercadoPagoId) {

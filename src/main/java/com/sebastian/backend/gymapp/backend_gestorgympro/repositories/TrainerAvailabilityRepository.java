@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerAvailability;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface TrainerAvailabilityRepository extends JpaRepository<TrainerAvailability, Long> {
@@ -17,4 +18,10 @@ public interface TrainerAvailabilityRepository extends JpaRepository<TrainerAvai
     List<TrainerAvailability> findByTrainerIdAndDayBetween(@Param("trainerId") Long trainerId,
                                                            @Param("startDay") LocalDate startDay,
                                                            @Param("endDay") LocalDate endDay);
+
+                                                           @Query("SELECT COUNT(t) > 0 FROM TrainerAvailability t WHERE t.trainer.id = :trainerId AND t.day = :day AND t.startTime <= :endTime AND t.endTime >= :startTime")
+boolean isTrainerAvailable(@Param("trainerId") Long trainerId,
+                           @Param("day") LocalDate day,
+                           @Param("startTime") LocalTime startTime,
+                           @Param("endTime") LocalTime endTime);
 }
