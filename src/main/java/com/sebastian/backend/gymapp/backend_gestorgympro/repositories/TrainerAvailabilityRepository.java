@@ -24,4 +24,11 @@ boolean isTrainerAvailable(@Param("trainerId") Long trainerId,
                            @Param("day") LocalDate day,
                            @Param("startTime") LocalTime startTime,
                            @Param("endTime") LocalTime endTime);
+
+        // En TrainerAvailabilityRepository
+@Query("SELECT t FROM TrainerAvailability t " +
+"WHERE t.trainer.id = :trainerId AND t.day = :day")
+List<TrainerAvailability> findByTrainerIdAndDay(@Param("trainerId") Long trainerId,
+                                         @Param("day") LocalDate day);
+            
 }

@@ -4,6 +4,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.CalendarEven
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TimeSlotDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAvailabilityRequest;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Booking;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.TrainerAvailability;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
@@ -19,6 +20,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.impl.SubscriptionServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +30,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
@@ -67,73 +71,63 @@ public class TrainerScheduleController {
     @GetMapping("/{trainerId}/weekly-slots")
     @PreAuthorize("hasAnyRole('USER', 'TRAINER', 'ADMIN')")
     public ResponseEntity<?> getWeeklySlots(@PathVariable Long trainerId, Authentication authentication) {
+        System.out.println("=== Controller GET /trainer-schedule/" + trainerId + "/weekly-slots ===");
         String email = authentication.getName();
         System.out.println("Usuario autenticado: " + email);
     
         Optional<User> userOpt = userService.findByEmail(email);
         if (userOpt.isEmpty()) {
-            System.out.println("Usuario no autenticado.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                                 .body("Usuario no autenticado");
-        }
-    
-        User user = userOpt.get();
-        System.out.println("Usuario encontrado: " + user.getId() + " - " + user.getEmail());
-    
-        boolean hasSubscription = subscriptionService.hasActivePlanWithTrainer(user.getId(), trainerId) ||
-                                   personalTrainerSubscriptionService.hasActiveTrainerSubscription(user.getId(), trainerId);
-        System.out.println("El usuario tiene suscripción activa con el entrenador: " + hasSubscription);
-    
-        if (!hasSubscription) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                 .body("No tienes una suscripción activa para ver los slots semanales de este entrenador.");
-        }
-    
-        List<TimeSlotDTO> slots = trainerScheduleService.getWeeklySlotsForTrainer(trainerId);
-        System.out.println("Slots generados para el entrenador " + trainerId + ": " + slots);
-    
-        return ResponseEntity.ok(slots);
-    }
-    
-    @PostMapping("/book")
-    @PreAuthorize("hasAnyRole('USER', 'TRAINER', 'ADMIN')")
-    public ResponseEntity<?> bookSlot(@RequestParam Long trainerId,
-                                      @RequestParam String slotStart,
-                                      Authentication authentication) {
-        String currentUserEmail = authentication.getName();
-    
-        Optional<User> userOpt = userService.findByEmail(currentUserEmail);
-        if (userOpt.isEmpty()) {
+            System.out.println("Usuario no autenticado, devolviendo 401");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
         }
     
         User user = userOpt.get();
+        System.out.println("User ID: " + user.getId());
     
-        try {
-            LocalDateTime slotDateTime = LocalDateTime.parse(slotStart);
-            boolean success = trainerScheduleService.bookSlot(user.getId(), trainerId, slotDateTime);
+        // Lógica de ver si tiene suscripción
+        boolean hasSubscription = subscriptionService.hasActivePlanWithTrainer(user.getId(), trainerId)
+            || personalTrainerSubscriptionService.hasActiveTrainerSubscription(user.getId(), trainerId);
+        System.out.println("¿Tiene suscripción activa con el trainer " + trainerId + "? " + hasSubscription);
     
-            if (success) {
-                return ResponseEntity.ok("Reserva exitosa");
-            } else {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("El horario ya ha sido reservado.");
-            }
+        if (!hasSubscription) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                 .body("No tienes una suscripción activa para ver los slots de este entrenador.");
+        }
     
-        } catch (IllegalStateException e) {
-            System.out.println("Reserva fallida: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                        "error", "Reserva no permitida",
-                        "message", e.getMessage()  // Envía el mensaje exacto
-                    ));
-        } catch (DateTimeParseException e) {
-            return ResponseEntity.badRequest().body("Formato de fecha y hora inválido");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                        "error", "Error inesperado",
-                        "message", "Ocurrió un error al procesar la reserva"
-                    ));
+        // Llamar al servicio
+        List<TimeSlotDTO> slots = trainerScheduleService.getWeeklySlotsForTrainer(trainerId);
+        System.out.println("Obtenidos " + slots.size() + " slots. Respondiendo 200 OK.");
+        System.out.println("=== FIN Controller weekly-slots ===\n");
+        return ResponseEntity.ok(slots);
+    }
+    
+    
+    @PostMapping("/book")
+    public ResponseEntity<?> bookSlot(
+        @RequestParam Long trainerId,
+        @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime slotStart,
+        Authentication authentication){
+
+        // Por ejemplo, mostramos en logs:
+        System.out.println("==========");
+        System.out.println("trainerId: " + trainerId);
+        System.out.println("slotStart (ZonedDateTime): " + slotStart);
+        System.out.println("==========");
+
+        String userEmail = authentication.getName();
+  
+ 
+
+      
+
+        // Ejemplo: Delegar al servicio la lógica de reservar
+        boolean success = trainerScheduleService.bookSlot(userEmail, trainerId, slotStart);
+        // ^ Ajusta la firma de tu método service según tu lógica
+
+        if (success) {
+            return ResponseEntity.ok("Reserva exitosa");
+        } else {
+            return ResponseEntity.status(409).body("El slot no está disponible.");
         }
     }
     
@@ -202,6 +196,44 @@ public class TrainerScheduleController {
         return ResponseEntity.ok("Entrenador asignado a la clase con éxito.");
     }
 
-            
- 
+    @GetMapping("/{trainerId}/existing-booking")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getExistingBooking(
+        @PathVariable Long trainerId,
+        @RequestParam String slotStart,
+        Authentication authentication) {
+        
+        String email = authentication.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    
+        LocalDateTime startDateTime = LocalDateTime.parse(slotStart, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+    
+        LocalDate slotDate = startDateTime.toLocalDate();
+        Optional<Booking> existingBooking = bookingRepository
+            .findByUserIdAndTrainerIdAndStartDateTimeBetween(
+                 user.getId(), trainerId,
+                 slotDate.atStartOfDay(), slotDate.atTime(23, 59)
+            ).stream().findFirst();
+        
+        if (existingBooking.isPresent()) {
+            return ResponseEntity.ok(existingBooking.get());
+        }
+    
+        return ResponseEntity.ok().body(null);
+    }
+    
+
+    @DeleteMapping("/cancel-booking/{bookingId}")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId, Authentication authentication) {
+        String email = authentication.getName();
+        User user = userService.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    
+        trainerScheduleService.cancelBooking(bookingId, user.getId());
+    
+        return ResponseEntity.ok("Reserva cancelada y bloque liberado con éxito");
+    }
+    
 }

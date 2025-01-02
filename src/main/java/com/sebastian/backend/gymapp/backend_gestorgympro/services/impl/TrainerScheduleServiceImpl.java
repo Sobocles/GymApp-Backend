@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -47,95 +48,138 @@ public class TrainerScheduleServiceImpl implements TrainerScheduleService {
     @Autowired
     private  PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
 
-   @Override
-@Transactional(readOnly = true)
-public List<TimeSlotDTO> getWeeklySlotsForTrainer(Long trainerId) {
-    LocalDate today = LocalDate.now();
-    LocalDate monday = today.with(DayOfWeek.MONDAY);
-    LocalDate sunday = monday.plusWeeks(2);  // Extiende a dos semanas
-
-
-    System.out.println("Calculando slots para el entrenador: " + trainerId);
-    System.out.println("Rango de fechas: " + monday + " a " + sunday);
-
-    List<TrainerAvailability> availabilities = trainerAvailabilityRepository.findByTrainerIdAndDayBetween(trainerId, monday, sunday);
-    System.out.println("Disponibilidades encontradas en la base de datos: " + availabilities);
-
-    List<TimeSlotDTO> slots = new ArrayList<>();
-
-    for (TrainerAvailability availability : availabilities) {
-        LocalDate date = availability.getDay();
-        LocalTime startTime = availability.getStartTime();
-        LocalTime endTime = availability.getEndTime();
-        System.out.println("Procesando disponibilidad: " + date + " " + startTime + " - " + endTime);
-
-        LocalTime slotStart = startTime;
-        while (slotStart.plusHours(1).isBefore(endTime) || slotStart.plusHours(1).equals(endTime)) {
-            LocalTime slotEnd = slotStart.plusHours(1);
-            LocalDateTime start = LocalDateTime.of(date, slotStart);
-            LocalDateTime end = LocalDateTime.of(date, slotEnd);
-
-            boolean booked = bookingRepository.existsByTrainerIdAndSlotStart(trainerId, start);
-            System.out.println("Slot generado: " + start + " - " + end + ", reservado: " + booked);
-
-            TimeSlotDTO dto = new TimeSlotDTO();
-            dto.setTrainerId(trainerId);
-            dto.setStartDateTime(start);
-            dto.setEndDateTime(end);
-            dto.setAvailable(!booked);
-            slots.add(dto);
-
-            slotStart = slotEnd;
+    @Override
+    @Transactional(readOnly = true)
+    public List<TimeSlotDTO> getWeeklySlotsForTrainer(Long trainerId) {
+        System.out.println("=== getWeeklySlotsForTrainer ===");
+        System.out.println("trainerId: " + trainerId);
+    
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+        LocalDate sunday = monday.plusWeeks(3);  // extiende a 2 semanas
+        System.out.println("Rango de búsqueda: " + monday + " -> " + sunday);
+    
+        // Buscar en trainerAvailabilityRepository
+        List<TrainerAvailability> availabilities = 
+            trainerAvailabilityRepository.findByTrainerIdAndDayBetween(trainerId, monday, sunday);
+    
+        System.out.println("Se obtuvieron " + availabilities.size() + " TrainerAvailability. Detalle:");
+        for (TrainerAvailability av : availabilities) {
+            System.out.println("  - ID=" + av.getId() + " " 
+                               + av.getDay() + " " 
+                               + av.getStartTime() + "-" + av.getEndTime());
         }
+    
+        List<TimeSlotDTO> slots = new ArrayList<>();
+    
+        for (TrainerAvailability availability : availabilities) {
+            LocalDate date = availability.getDay();
+            LocalTime startTime = availability.getStartTime();
+            LocalTime endTime = availability.getEndTime();
+    
+            System.out.println("Generando horas para " + date + " [" + startTime + " - " + endTime + "]");
+            LocalTime slotStart = startTime;
+            while (!slotStart.plusHours(1).isAfter(endTime)) {
+                LocalTime slotEnd = slotStart.plusHours(1);
+                LocalDateTime start = LocalDateTime.of(date, slotStart);
+                LocalDateTime end = LocalDateTime.of(date, slotEnd);
+    
+                // Verificar si ese slot ya está en 'bookings' => setear available=false
+                boolean isBooked = bookingRepository.existsByTrainerIdAndSlotStart(trainerId, start);
+                // Ejem: or las validaciones que tengas
+                TimeSlotDTO dto = new TimeSlotDTO();
+                dto.setTrainerId(trainerId);
+                dto.setStartDateTime(start);
+                dto.setEndDateTime(end);
+                dto.setAvailable(!isBooked);
+    
+                slots.add(dto);
+                slotStart = slotEnd;
+            }
+        }
+        System.out.println("TOTAL de slots generados: " + slots.size());
+        for (TimeSlotDTO s : slots) {
+            System.out.println("  => " + s.getStartDateTime() 
+                               + " - " + s.getEndDateTime() 
+                               + " available=" + s.isAvailable());
+        }
+    
+        System.out.println("=== FIN getWeeklySlotsForTrainer ===\n");
+        return slots;
     }
+    
 
-    System.out.println("Total de slots generados: " + slots.size());
-    return slots;
-}
-
-        @Override
-        @Transactional
-        public boolean bookSlot(Long userId, Long trainerId, LocalDateTime slotStart) {
-            // Verificar que el entrenador existe
-            PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
-                    .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado"));
-
-            // Verificar que el usuario existe
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
-
-            LocalDate slotDate = slotStart.toLocalDate();
-
-            // Validar si ya tiene una reserva el mismo día
-            boolean alreadyBookedToday = bookingRepository.existsByUserIdAndTrainerIdAndSlotDate(userId, trainerId, slotDate);
-            if (alreadyBookedToday) {
-                throw new IllegalStateException("Ya tienes una reserva con este entrenador para el mismo día.");
+        
+    @Transactional
+    @Override
+    public boolean bookSlot(String userEmail, Long trainerId, LocalDateTime slotStart) {
+        // 1) Verificar duplicado, lógica extra, etc. (omitido aquí)
+        //    Supongamos ya comprobaste que el slot está libre, etc.
+        
+        // 2) Obtener el usuario y el entrenador reales
+        User user = userRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
+    
+        PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)
+            .orElseThrow(() -> new IllegalArgumentException("Entrenador no encontrado"));
+    
+        // 3) Crear y guardar la Booking real
+        Booking booking = new Booking();
+        booking.setUser(user);
+        booking.setTrainer(trainer);
+        booking.setStartDateTime(slotStart);
+        booking.setEndDateTime(slotStart.plusHours(1));
+    
+        bookingRepository.save(booking);
+    
+        // 4) Partir la availability
+        LocalDate day   = slotStart.toLocalDate();
+        LocalTime start = slotStart.toLocalTime();
+        LocalTime end   = start.plusHours(1);
+    
+        // Asegúrate de tener este método en tu repo (query custom o filtrar en memoria)
+        List<TrainerAvailability> sameDay = trainerAvailabilityRepository
+           .findByTrainerIdAndDay(trainerId, day);
+    
+        for (TrainerAvailability av : sameDay) {
+            LocalTime avStart = av.getStartTime();
+            LocalTime avEnd   = av.getEndTime();
+    
+            // Si se solapa con [start, end], partimos.
+            // La condición "avStart < end && avEnd > start" detecta solapamiento
+            if (avStart.isBefore(end) && avEnd.isAfter(start)) {
+    
+                // 1) Eliminar la fila original:
+                trainerAvailabilityRepository.delete(av);
+    
+                // 2) Crear la parte "izquierda" [avStart..start], si es válida:
+                if (avStart.isBefore(start)) {
+                    TrainerAvailability left = new TrainerAvailability();
+                    left.setTrainer(trainer);
+                    left.setDay(day);
+                    left.setStartTime(avStart);
+                    left.setEndTime(start);
+    
+                    trainerAvailabilityRepository.save(left);
+                }
+    
+                // 3) Crear la parte "derecha" [end..avEnd], si es válida:
+                if (end.isBefore(avEnd)) {
+                    TrainerAvailability right = new TrainerAvailability();
+                    right.setTrainer(trainer);
+                    right.setDay(day);
+                    right.setStartTime(end);
+                    right.setEndTime(avEnd);
+    
+                    trainerAvailabilityRepository.save(right);
+                }
             }
-
-            // Validar si tiene más de 5 reservas en la misma semana
-            LocalDate startOfWeek = slotDate.with(DayOfWeek.MONDAY);
-            LocalDate endOfWeek = startOfWeek.plusDays(6);
-            long weeklyBookings = bookingRepository.countByUserIdAndTrainerIdAndSlotDateBetween(userId, trainerId, startOfWeek, endOfWeek);
-            if (weeklyBookings >= 5) {
-                throw new IllegalStateException("Has alcanzado el límite de 5 reservas semanales con este entrenador.");
-            }
-
-            // Verificar si ya está reservado ese slot
-            boolean booked = bookingRepository.existsByTrainerIdAndSlotStart(trainerId, slotStart);
-            if (booked) {
-                throw new IllegalStateException("Este horario ya ha sido reservado por otro usuario.");
-            }
-
-            // Proceder con la reserva
-            Booking booking = new Booking();
-            booking.setUser(user);
-            booking.setTrainer(trainer);
-            booking.setStartDateTime(slotStart);
-            booking.setEndDateTime(slotStart.plusHours(1)); 
-
-            bookingRepository.save(booking);
-            return true;
         }
+    
+        return true;
+    }
+    
+    
 
 
 
@@ -219,6 +263,108 @@ public List<CalendarEventDTO> getClientSessions(Long clientId) {
 
     return futureSessions;
 }
+
+@Transactional
+@Override
+public boolean cancelBooking(Long bookingId, Long userId) {
+    Booking booking = bookingRepository.findById(bookingId)
+        .orElseThrow(() -> {
+            System.out.println("Reserva no encontrada con ID: " + bookingId);
+            return new IllegalArgumentException("Reserva no encontrada");
+        });
+
+    if (!booking.getUser().getId().equals(userId)) {
+        System.out.println("Usuario no autorizado para cancelar esta reserva. Usuario ID: " + userId);
+        throw new IllegalStateException("No tienes permiso para cancelar esta reserva");
+    }
+
+    System.out.println("Cancelando reserva con ID: " + bookingId);
+
+    // Elimina la reserva
+    bookingRepository.delete(booking);
+    System.out.println("Reserva eliminada correctamente");
+
+    // Actualiza la tabla de disponibilidad para re-liberar la franja
+    LocalDate day     = booking.getStartDateTime().toLocalDate();
+    LocalTime startT  = booking.getStartDateTime().toLocalTime();
+    LocalTime endT    = booking.getEndDateTime().toLocalTime();
+    Long trainerId    = booking.getTrainer().getId();
+
+    System.out.println("Liberando franja para el entrenador ID: " + trainerId + " en fecha: " + day + 
+                       " desde " + startT + " hasta " + endT);
+
+    // Buscar rangos que se solapen o toquen la franja cancelada
+    List<TrainerAvailability> sameDayRanges = trainerAvailabilityRepository
+        .findByTrainerIdAndDay(trainerId, day);
+    
+    System.out.println("Disponibilidades encontradas ese día: " + sameDayRanges.size());
+
+    List<TrainerAvailability> nuevos = new ArrayList<>();
+
+    // Iterar sobre cada franja de disponibilidad
+    for (TrainerAvailability av : sameDayRanges) {
+        LocalTime avStart = av.getStartTime();
+        LocalTime avEnd   = av.getEndTime();
+
+        System.out.println("Evaluando disponibilidad: " + avStart + " - " + avEnd);
+
+        if (avEnd.isBefore(startT) || avStart.isAfter(endT)) {
+            System.out.println("No hay solapamiento con: " + avStart + " - " + avEnd);
+            nuevos.add(av);
+            continue;
+        }
+
+        // Solapamiento detectado, eliminamos y reconstruimos
+        System.out.println("Solapamiento detectado, eliminando disponibilidad: " + avStart + " - " + avEnd);
+        trainerAvailabilityRepository.delete(av);
+
+        LocalTime minStart = (avStart.isBefore(startT)) ? avStart : startT;
+        LocalTime maxEnd   = (avEnd.isAfter(endT)) ? avEnd : endT;
+
+        TrainerAvailability tmp = new TrainerAvailability();
+        tmp.setTrainer(booking.getTrainer());
+        tmp.setDay(day);
+        tmp.setStartTime(minStart);
+        tmp.setEndTime(maxEnd);
+
+        System.out.println("Nueva disponibilidad temporal: " + minStart + " - " + maxEnd);
+        nuevos.add(tmp);
+    }
+
+    // Unir los rangos que se solapan
+    nuevos.sort(Comparator.comparing(TrainerAvailability::getStartTime));
+    List<TrainerAvailability> merged = new ArrayList<>();
+
+    for (TrainerAvailability current : nuevos) {
+        if (merged.isEmpty()) {
+            merged.add(current);
+        } else {
+            TrainerAvailability last = merged.get(merged.size() - 1);
+            if (!last.getEndTime().isBefore(current.getStartTime())) {
+                LocalTime unionEnd = last.getEndTime().isAfter(current.getEndTime())
+                                     ? last.getEndTime() : current.getEndTime();
+                last.setEndTime(unionEnd);
+                System.out.println("Unión de disponibilidad: " + last.getStartTime() + " - " + unionEnd);
+            } else {
+                merged.add(current);
+            }
+        }
+    }
+
+    System.out.println("Guardando disponibilidades finales...");
+    for (TrainerAvailability m : merged) {
+        System.out.println("Guardando: " + m.getStartTime() + " - " + m.getEndTime());
+        trainerAvailabilityRepository.save(m);
+    }
+
+    System.out.println("Proceso de cancelación completado exitosamente");
+    return true;
+}
+
+
+
+
+
 
     
 
