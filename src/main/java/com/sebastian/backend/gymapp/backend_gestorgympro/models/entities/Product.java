@@ -28,6 +28,9 @@ public class Product {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @Column(name = "sales_count")
+    private Integer salesCount = 0;
+
     public Category getCategory() {
         return category;
     }

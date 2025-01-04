@@ -17,19 +17,30 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
         Optional<Payment> findByExternalReference(String externalReference);
 
-        @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p")
-        BigDecimal getTotalRevenue();
+   
 
                 /**
          * Calcula la suma total de los pagos filtrados por tipo de servicio.
          *
          * @param serviceType El tipo de servicio para filtrar los pagos.
          * @return La suma total de los pagos filtrados como BigDecimal.
+         * 
+         * 
          */
 
+         @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p WHERE p.status = 'approved'")
+        BigDecimal getTotalApprovedRevenue();
 
-        @Query("SELECT SUM(p.transactionAmount) FROM Payment p WHERE p.plan.name = :planType")
-        BigDecimal getRevenueByPlanType(@Param("planType") String planType);
+        @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p " +
+       "WHERE p.planIncluded = false AND p.trainerIncluded = false AND p.status = 'approved'")
+        BigDecimal getTotalApprovedProductRevenue();
+
+
+        
+
+        // Total de ingresos de planes (pagos donde planIncluded es true)
+@Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p WHERE p.planIncluded = true AND p.status = 'approved'")
+BigDecimal getTotalApprovedPlanRevenue();
 
 
 
@@ -45,7 +56,11 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
                                         "GROUP BY p.plan.name")
                                  List<Object[]> getRevenueGroupedByPlanName();
                                  
-         List<Payment> findByUserIdAndStatus(Long userId, String status);                                
+         List<Payment> findByUserIdAndStatus(Long userId, String status);  
+         
+         @Query("SELECT COALESCE(SUM(p.transactionAmount), 0) FROM Payment p WHERE p.planIncluded = false AND p.trainerIncluded = false")
+        BigDecimal getTotalProductRevenue();
+
 }
 
 

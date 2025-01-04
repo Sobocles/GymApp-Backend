@@ -36,52 +36,7 @@ public class ProductController {
 
     @Autowired
     private CategoryService categoryService;
-/*
- @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-@PreAuthorize("hasAnyRole('ADMIN')")
-public ResponseEntity<ProductDto> createProduct(
-        @RequestParam("name") String name,
-        @RequestParam("description") String description,
-        @RequestParam("category") String category,
-        @RequestParam("price") Double price,
-        @RequestPart(value = "image", required = false) MultipartFile image
-) {
-    String imageUrl = null;
-    if (image != null && !image.isEmpty()) {
-        try {
-            imageUrl = cloudinaryService.uploadImage(image);
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
 
-    // Obtener la categoría por nombre
-    Category categoryEntity = categoryService.getCategoryByName(category);
-    if (categoryEntity == null) {
-        return ResponseEntity.badRequest().body(null); // Manejar categoría no encontrada
-    }
-
-    // Crear el producto
-    Product product = new Product();
-    product.setName(name);
-    product.setDescription(description);
-    product.setCategory(categoryEntity);
-    product.setPrice(BigDecimal.valueOf(price));
-    product.setImageUrl(imageUrl);
-
-    Product createdProduct = productService.createProduct(product);
-
-    // Convertir a DTO
-    ProductDto productDto = new ProductDto();
-    productDto.setName(createdProduct.getName());
-    productDto.setDescription(createdProduct.getDescription());
-    productDto.setCategory(createdProduct.getCategory().getName());
-    productDto.setPrice(createdProduct.getPrice().doubleValue());
-
-    return ResponseEntity.ok(productDto);
-}
-
- */
     @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Product> createProduct(
@@ -200,13 +155,25 @@ public ResponseEntity<Page<Product>> getProductsPage(
     return ResponseEntity.ok(productPage);
 }
 
-// ProductController.java
-@GetMapping("/products/search")
-public ResponseEntity<List<Product>> searchProducts(@RequestParam("term") String term) {
-    // Por simplicidad, filtramos solo por nombre. Ajusta según tu lógica.
-    List<Product> results = productService.searchProducts(term);
-    return ResponseEntity.ok(results);
-}
+    // ProductController.java
+    @GetMapping("/products/search")
+    public ResponseEntity<List<Product>> searchProducts(@RequestParam("term") String term) {
+        // Por simplicidad, filtramos solo por nombre. Ajusta según tu lógica.
+        List<Product> results = productService.searchProducts(term);
+        return ResponseEntity.ok(results);
+    }
+
+    // ProductController.java
+
+    @GetMapping("/products/sorted")
+    public ResponseEntity<List<Product>> getProductsSorted(
+        @RequestParam(value = "sortBy", required = false, defaultValue = "price_asc") String sortBy
+    ) {
+        // Este método delega la lógica a tu servicio
+        List<Product> sortedProducts = productService.getAllProductsSorted(sortBy);
+        return ResponseEntity.ok(sortedProducts);
+    }
+
 
 
 }

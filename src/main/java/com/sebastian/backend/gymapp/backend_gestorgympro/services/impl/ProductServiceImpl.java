@@ -72,5 +72,36 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByNameContainingIgnoreCase(term);
     }
 
+    @Override
+    public List<Product> getAllProductsSorted(String sortBy) {
+        switch (sortBy) {
+            case "best_selling":
+                // Supongamos que en la entidad Product existe un campo "salesCount"
+                // y que en tu ProductRepository extends JpaRepository<Product, Long>.
+                // Podemos usar "findAll(Sort sort)" para ordenar:
+                return productRepository.findAll(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC,
+                        "salesCount"
+                ));
+    
+            case "price_desc":
+                // De mayor a menor
+                return productRepository.findAll(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC,
+                        "price"
+                ));
+    
+            case "price_asc":
+            default:
+                // De menor a mayor
+                return productRepository.findAll(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.ASC,
+                        "price"
+                ));
+        }
+    }
+    
+}
+
 
 }

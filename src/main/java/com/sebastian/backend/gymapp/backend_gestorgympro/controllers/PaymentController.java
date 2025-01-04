@@ -112,35 +112,13 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, BigDecimal>> getTotalRevenue() {
         try {
-            BigDecimal totalRevenue = paymentReportService.getTotalRevenue();
-            return ResponseEntity.ok(Map.of("totalRevenue", totalRevenue));
+            Map<String, BigDecimal> revenue = paymentReportService.getTotalRevenueBreakdown();
+            return ResponseEntity.ok(revenue);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", BigDecimal.ZERO));
         }
     }
-/* 
-    @GetMapping("/revenue-by-service-type/{serviceType}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, BigDecimal>> getRevenueByServiceType(@PathVariable String serviceType) {
-        try {
-            // Convertir el parámetro de ruta a ServiceType enum
-            Payment.serviceType type = Payment.serviceType.valueOf(serviceType.toUpperCase());
 
-            BigDecimal totalRevenue = paymentService.getTotalRevenueByServiceType(type);
-            return ResponseEntity.ok(Map.of(
-                "serviceType", new BigDecimal(type.ordinal()), // Para incluir el tipo de servicio en la respuesta
-                "totalRevenue", totalRevenue
-            ));
-        } catch (IllegalArgumentException e) {
-            // Maneja el caso en que el serviceType proporcionado no es válido
-            return ResponseEntity.badRequest().body(Map.of("error", BigDecimal.ZERO));
-        } catch (Exception e) {
-            System.err.println("Error al obtener la suma total de ingresos por tipo de servicio: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500).body(Map.of("error", BigDecimal.ZERO));
-        }
-    }
-*/
         @GetMapping("/admin-dashboard-revenue")
         @PreAuthorize("hasRole('ADMIN')")
         public ResponseEntity<Map<String, Object>> getAdminDashboardRevenue() {
@@ -151,6 +129,8 @@ public class PaymentController {
                 return ResponseEntity.status(500).body(Map.of("error", "Error interno del servidor"));
             }
         }
+
+        
 
 
 

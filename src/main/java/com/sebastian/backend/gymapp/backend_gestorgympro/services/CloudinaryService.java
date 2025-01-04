@@ -26,9 +26,10 @@ public class CloudinaryService {
         @SuppressWarnings("unchecked")
         Map<String, Object> params = ObjectUtils.asMap(
             "use_filename", true,
-            "unique_filename", false,
-            "overwrite", true
+            "unique_filename", true,   // Cambiar a true o directamente eliminarlo
+            "overwrite", false         // O directamente no setearlo
         );
+        
     
         @SuppressWarnings("unchecked")
         Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);

@@ -55,15 +55,6 @@ public class TrainerController {
     @Autowired
     private TrainerService trainerService;
 
-    @Autowired
-private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
-
-    @Autowired
-    private SubscriptionService subscriptionService;
-
-        @Autowired
-    private TrainerClientRepository trainerClientRepository;
-
 
 // TrainerController.java
 

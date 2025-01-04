@@ -61,4 +61,13 @@ public class CarouselImage {
     public void setOrderNumber(Integer orderNumber) {
         this.orderNumber = orderNumber;
     }
+
+    @Override
+public String toString() {
+    return "CarouselImage{id=" + id + 
+           ", caption='" + caption + '\'' + 
+           ", imageUrl='" + imageUrl + '\'' + 
+           ", order=" + orderNumber + "}";
+}
+
 }

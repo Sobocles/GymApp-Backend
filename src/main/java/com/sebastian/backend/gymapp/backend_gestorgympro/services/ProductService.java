@@ -17,5 +17,6 @@ public interface ProductService {
     Page<Product> findAll(Pageable pageable);
     List<Product> searchProducts(String term);
 
+    List<Product> getAllProductsSorted(String sortBy);
 
 }
