@@ -24,12 +24,39 @@ public class Product {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "stock")
+    private Integer stock = 0; 
+
+    @Column(name = "sales_count")
+    private Integer salesCount = 0;
+
+    @Column(name = "brand")
+    private String brand;
+
+    @Column(name = "flavor")
+    private String flavor;
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public Integer getSalesCount() {
+        return salesCount;
+    }
+
+    public void setSalesCount(Integer salesCount) {
+        this.salesCount = salesCount;
+    }
+
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
-    @Column(name = "sales_count")
-    private Integer salesCount = 0;
+
 
     public Category getCategory() {
         return category;

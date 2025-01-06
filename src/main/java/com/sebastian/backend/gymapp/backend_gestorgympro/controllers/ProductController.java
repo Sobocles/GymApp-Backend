@@ -1,18 +1,18 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductDto;
+
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.CloudinaryService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProductService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +44,8 @@ public class ProductController {
         @RequestParam("description") String description,
         @RequestParam("category") String category,
         @RequestParam("price") Double price,
+        @RequestParam("stock") Integer stock,
+        @RequestParam("salesCount") Integer salesCount,
         @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         String imageUrl = null;
@@ -55,23 +57,24 @@ public class ProductController {
             }
         }
     
-        // Obtener la categoría por nombre
         Category categoryEntity = categoryService.getCategoryByName(category);
         if (categoryEntity == null) {
-            return ResponseEntity.badRequest().body(null); // Manejar categoría no encontrada
+            return ResponseEntity.badRequest().body(null);
         }
     
-        // Crear el producto
         Product product = new Product();
         product.setName(name);
         product.setDescription(description);
         product.setCategory(categoryEntity);
         product.setPrice(BigDecimal.valueOf(price));
+        product.setStock(stock);
+        product.setSalesCount(salesCount);
         product.setImageUrl(imageUrl);
     
         Product createdProduct = productService.createProduct(product);
         return ResponseEntity.ok(createdProduct);
     }
+    
     
 
     @GetMapping("/products")
@@ -96,24 +99,29 @@ public class ProductController {
     
     @PutMapping("/products/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id,
-                                                 @RequestParam(required = false) String name,
-                                                 @RequestParam(required = false) String description,
-                                                 @RequestParam(required = false) String category,
-                                                 @RequestParam(required = false) Double price,
-                                                 @RequestParam(required = false) MultipartFile image) {
+    public ResponseEntity<Product> updateProduct(
+        @PathVariable Long id,
+        @RequestParam(required = false) String name,
+        @RequestParam(required = false) String description,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) Double price,
+        @RequestParam(required = false) Integer stock,
+        @RequestParam(required = false) Integer salesCount,
+        @RequestParam(required = false) MultipartFile image
+    ) {
         Product productDetails = productService.getProductById(id);
-
+    
         if (name != null) productDetails.setName(name);
         if (description != null) productDetails.setDescription(description);
-        
+        if (price != null) productDetails.setPrice(BigDecimal.valueOf(price));
+        if (stock != null) productDetails.setStock(stock);
+        if (salesCount != null) productDetails.setSalesCount(salesCount);
+    
         if (category != null) {
             Category categoryEntity = categoryService.getCategoryByName(category);
             productDetails.setCategory(categoryEntity);
         }
-
-        if (price != null) productDetails.setPrice(BigDecimal.valueOf(price));
-
+    
         if (image != null && !image.isEmpty()) {
             try {
                 String imageUrl = cloudinaryService.uploadImage(image);
@@ -122,10 +130,11 @@ public class ProductController {
                 return ResponseEntity.badRequest().build();
             }
         }
-
+    
         Product updatedProduct = productService.updateProduct(id, productDetails);
         return ResponseEntity.ok(updatedProduct);
     }
+    
 
     @DeleteMapping("/products/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -135,7 +144,7 @@ public class ProductController {
     }
 
 
-  
+  /* 
 @GetMapping("/products/page/{page}")
 public ResponseEntity<Page<Product>> getProductsPage(
     @PathVariable int page,
@@ -154,7 +163,7 @@ public ResponseEntity<Page<Product>> getProductsPage(
 
     return ResponseEntity.ok(productPage);
 }
-
+*/
     // ProductController.java
     @GetMapping("/products/search")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam("term") String term) {
@@ -173,6 +182,53 @@ public ResponseEntity<Page<Product>> getProductsPage(
         List<Product> sortedProducts = productService.getAllProductsSorted(sortBy);
         return ResponseEntity.ok(sortedProducts);
     }
+
+    @GetMapping("/products/page/{page}")
+    public ResponseEntity<Page<Product>> getProductsPage(
+        @PathVariable int page,
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(required = false) String category,
+        @RequestParam(defaultValue = "price_asc") String sortBy
+    ) {
+        System.out.println("VALORES QUE LLEGAN DE FRONT-END");
+        System.out.println(page);
+        System.out.println(size);
+        System.out.println(category);
+        System.out.println(sortBy);
+        System.out.println("----------------------------------");
+        Sort sort;
+        switch (sortBy) {
+            case "best_selling":
+            System.out.println("best_selling");
+                sort = Sort.by(Sort.Direction.DESC, "salesCount");
+                System.out.println("AQUI SORT"+sort);
+                break;
+            case "price_desc":
+            System.out.println("PRICE_DESC");
+                sort = Sort.by(Sort.Direction.DESC, "price");
+                System.out.println("AQUI SORT"+sort);
+                break;
+            default:
+                System.out.println("PRICE_ASC"); 
+                sort = Sort.by(Sort.Direction.ASC, "price");
+                System.out.println("AQUI SORT"+sort);
+        }
+    
+        Pageable pageable = PageRequest.of(page, size, sort);
+    
+        Page<Product> productPage;
+        if (category != null && !category.isEmpty()) {
+            Category cat = categoryService.getCategoryByName(category);
+            productPage = productService.findByCategory(cat, pageable);
+        } else {
+            productPage = productService.findAll(pageable);
+        }
+    
+        return ResponseEntity.ok(productPage);
+    }
+    
+    
+
 
 
 

@@ -6,7 +6,7 @@ import com.mercadopago.exceptions.MPException;
 
 import com.mercadopago.resources.preference.Preference;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
-
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentNotificationService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentReportService;
 
@@ -47,7 +47,7 @@ public class PaymentController {
         @Autowired
     private ProductPaymentService productPaymentService;
 
-
+  
 
     @Value("${mercadopago.successUrl}")
     private String successUrl;

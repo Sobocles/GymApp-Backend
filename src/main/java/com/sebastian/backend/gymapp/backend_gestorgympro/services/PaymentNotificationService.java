@@ -11,23 +11,37 @@ import org.springframework.stereotype.Service;
 import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.OrderDetail;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.ProductRepository;
 
 @Service
 public class PaymentNotificationService {
 
     @Autowired
     private PaymentService paymentService;
+
     @Autowired
     private EmailService emailService;
+
     @Autowired
     private SubscriptionService subscriptionService;
+
     @Autowired
     private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
+
     @Autowired
     private TrainerService trainerService;
+
+    @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public void processNotification(Map<String, String> params) throws MPException, MPApiException {
         System.out.println("Notificación recibida: " + params);
@@ -78,6 +92,26 @@ public class PaymentNotificationService {
                     if (dbPayment.isTrainerIncluded()) {
                         handleTrainerSubscription(dbPayment);
                     }
+
+                    List<OrderDetail> details = orderDetailRepository.findByPaymentId(dbPayment.getId());
+                    for (OrderDetail od : details) {
+                        Product p = od.getProduct();
+                    
+                        // Incrementar salesCount por la cantidad comprada
+                        int nuevoSalesCount = p.getSalesCount() + od.getQuantity();
+                        p.setSalesCount(nuevoSalesCount);
+                    
+                        // Restar stock por la cantidad comprada
+                        p.setStock(p.getStock() - od.getQuantity());
+                    
+                        // Guardar el producto actualizado
+                        productRepository.save(p);
+                    
+                        System.out.println("Ventas y stock actualizados para el producto: " + p.getName() +
+                                           ". Ventas totales: " + nuevoSalesCount +
+                                           ", Stock restante: " + p.getStock());
+                    }
+                    
                 }
 
             } else {

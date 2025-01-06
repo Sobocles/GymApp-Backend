@@ -17,10 +17,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findByNameContainingIgnoreCase(String name);
 
-    @Query("SELECT p FROM Product p LEFT JOIN OrderDetail od ON p.id = od.product.id " +
-       "GROUP BY p.id " +
-       "ORDER BY COUNT(od.id) DESC")
-        List<Product> findAllOrderBySalesDesc();
+    @Query("SELECT p FROM Product p " +
+    "LEFT JOIN OrderDetail od ON p.id = od.product.id " +
+    "GROUP BY p.id " +
+    "ORDER BY SUM(od.quantity) DESC")
+    List<Product> findAllOrderBySalesDesc();
+
 
 
 

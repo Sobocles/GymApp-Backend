@@ -18,10 +18,14 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
     }
 
-    @Override
-    public Product createProduct(Product product) {
-        return productRepository.save(product);
+ @Override
+public Product createProduct(Product product) {
+    if (product.getSalesCount() == null) {
+        product.setSalesCount(0);
     }
+    return productRepository.save(product);
+}
+
 
     @Override
     public List<Product> getAllProducts() {
@@ -76,13 +80,8 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getAllProductsSorted(String sortBy) {
         switch (sortBy) {
             case "best_selling":
-                // Supongamos que en la entidad Product existe un campo "salesCount"
-                // y que en tu ProductRepository extends JpaRepository<Product, Long>.
-                // Podemos usar "findAll(Sort sort)" para ordenar:
-                return productRepository.findAll(org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC,
-                        "salesCount"
-                ));
+
+            return productRepository.findAllOrderBySalesDesc();
     
             case "price_desc":
                 // De mayor a menor
@@ -104,4 +103,4 @@ public class ProductServiceImpl implements ProductService {
 }
 
 
-}
+
