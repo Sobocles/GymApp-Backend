@@ -87,17 +87,7 @@ public class PaymentService {
         }
 
      
-  /*  
-    public BigDecimal getTotalRevenueByServiceType(Payment.serviceType serviceType) {
-        System.out.println("Parámetro serviceType recibido: " + serviceType);
-        return paymentRepository.getTotalRevenueByServiceType(serviceType);
-    }
-    
 
-    public boolean existsByServiceType(Payment.serviceType serviceType) {
-        return paymentRepository.existsByServiceType(serviceType);
-    }
- */
     public BigDecimal getRevenueByIncludedFlags(boolean planIncluded, boolean trainerIncluded) {
         return paymentRepository.getRevenueByIncludedFlags(planIncluded, trainerIncluded);
     }

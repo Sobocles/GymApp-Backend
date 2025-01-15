@@ -1,6 +1,8 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
 
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductFilterDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import org.springframework.data.domain.Page;
@@ -37,44 +39,44 @@ public class ProductController {
     @Autowired
     private CategoryService categoryService;
 
-    @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+     @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<Product> createProduct(
+    public ResponseEntity<?> createProduct(
         @RequestParam("name") String name,
         @RequestParam("description") String description,
         @RequestParam("category") String category,
         @RequestParam("price") Double price,
         @RequestParam("stock") Integer stock,
-        @RequestParam("salesCount") Integer salesCount,
+        @RequestParam("brand") String brand,
+        @RequestParam("flavor") String flavor,
         @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        String imageUrl = null;
-        if (image != null && !image.isEmpty()) {
-            try {
-                imageUrl = cloudinaryService.uploadImage(image);
-            } catch (IOException e) {
-                return ResponseEntity.badRequest().build();
-            }
+        // 1) Crear un DTO con los parámetros
+        ProductDto dto = new ProductDto();
+        dto.setName(name);
+        dto.setDescription(description);
+        dto.setCategory(category);
+        dto.setPrice(price);
+        dto.setStock(stock);
+        dto.setBrand(brand);
+        dto.setFlavor(flavor);
+
+        try {
+            // 2) Llamar al servicio
+            Product createdProduct = productService.createProduct(dto, image);
+            // 3) Responder OK (200)
+            return ResponseEntity.ok(createdProduct);
+
+        } catch (IllegalArgumentException ex) {
+            // Por ejemplo, si la categoría no existe
+            return ResponseEntity.badRequest().body(ex.getMessage());
+
+        } catch (RuntimeException ex) {
+            // Error subiendo imagen o cualquier otra
+            return ResponseEntity.status(500)
+                                 .body("Error interno al crear producto: " + ex.getMessage());
         }
-    
-        Category categoryEntity = categoryService.getCategoryByName(category);
-        if (categoryEntity == null) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    
-        Product product = new Product();
-        product.setName(name);
-        product.setDescription(description);
-        product.setCategory(categoryEntity);
-        product.setPrice(BigDecimal.valueOf(price));
-        product.setStock(stock);
-        product.setSalesCount(salesCount);
-        product.setImageUrl(imageUrl);
-    
-        Product createdProduct = productService.createProduct(product);
-        return ResponseEntity.ok(createdProduct);
     }
-    
     
 
     @GetMapping("/products")
@@ -106,7 +108,8 @@ public class ProductController {
         @RequestParam(required = false) String category,
         @RequestParam(required = false) Double price,
         @RequestParam(required = false) Integer stock,
-        @RequestParam(required = false) Integer salesCount,
+        @RequestParam(required = false) String brand,
+        @RequestParam(required = false) String flavor,
         @RequestParam(required = false) MultipartFile image
     ) {
         Product productDetails = productService.getProductById(id);
@@ -115,7 +118,8 @@ public class ProductController {
         if (description != null) productDetails.setDescription(description);
         if (price != null) productDetails.setPrice(BigDecimal.valueOf(price));
         if (stock != null) productDetails.setStock(stock);
-        if (salesCount != null) productDetails.setSalesCount(salesCount);
+        if (brand != null) productDetails.setBrand(brand);
+        if (flavor != null) productDetails.setFlavor(flavor);
     
         if (category != null) {
             Category categoryEntity = categoryService.getCategoryByName(category);
@@ -135,6 +139,7 @@ public class ProductController {
         return ResponseEntity.ok(updatedProduct);
     }
     
+    
 
     @DeleteMapping("/products/{id}")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -144,7 +149,7 @@ public class ProductController {
     }
 
 
-  /* 
+
 @GetMapping("/products/page/{page}")
 public ResponseEntity<Page<Product>> getProductsPage(
     @PathVariable int page,
@@ -163,7 +168,7 @@ public ResponseEntity<Page<Product>> getProductsPage(
 
     return ResponseEntity.ok(productPage);
 }
-*/
+
     // ProductController.java
     @GetMapping("/products/search")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam("term") String term) {
@@ -183,53 +188,35 @@ public ResponseEntity<Page<Product>> getProductsPage(
         return ResponseEntity.ok(sortedProducts);
     }
 
-    @GetMapping("/products/page/{page}")
-    public ResponseEntity<Page<Product>> getProductsPage(
-        @PathVariable int page,
+    
+    @GetMapping("/products/brands")
+    public ResponseEntity<List<String>> getDistinctBrands() {
+        List<String> brands = productService.getDistinctBrands();
+        return ResponseEntity.ok(brands);
+    }
+
+    @GetMapping("/products/flavors")
+    public ResponseEntity<List<String>> getDistinctFlavors() {
+        List<String> flavors = productService.getDistinctFlavors();
+        return ResponseEntity.ok(flavors);
+    }
+
+    // ProductController.java
+
+    @GetMapping("/products/search2")
+    public ResponseEntity<Page<Product>> searchProducts2(
+        ProductFilterDto filter,
+        @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "12") int size,
-        @RequestParam(required = false) String category,
         @RequestParam(defaultValue = "price_asc") String sortBy
     ) {
-        System.out.println("VALORES QUE LLEGAN DE FRONT-END");
-        System.out.println(page);
-        System.out.println(size);
-        System.out.println(category);
-        System.out.println(sortBy);
-        System.out.println("----------------------------------");
-        Sort sort;
-        switch (sortBy) {
-            case "best_selling":
-            System.out.println("best_selling");
-                sort = Sort.by(Sort.Direction.DESC, "salesCount");
-                System.out.println("AQUI SORT"+sort);
-                break;
-            case "price_desc":
-            System.out.println("PRICE_DESC");
-                sort = Sort.by(Sort.Direction.DESC, "price");
-                System.out.println("AQUI SORT"+sort);
-                break;
-            default:
-                System.out.println("PRICE_ASC"); 
-                sort = Sort.by(Sort.Direction.ASC, "price");
-                System.out.println("AQUI SORT"+sort);
-        }
+        System.out.println("Filtros recibidos del frontend: " + filter);
+        System.out.println("Ordenamiento: " + sortBy);
     
-        Pageable pageable = PageRequest.of(page, size, sort);
-    
-        Page<Product> productPage;
-        if (category != null && !category.isEmpty()) {
-            Category cat = categoryService.getCategoryByName(category);
-            productPage = productService.findByCategory(cat, pageable);
-        } else {
-            productPage = productService.findAll(pageable);
-        }
-    
+        Page<Product> productPage = productService.advancedSearch(filter, page, size, sortBy);
         return ResponseEntity.ok(productPage);
     }
     
-    
-
-
 
 
 }

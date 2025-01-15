@@ -33,6 +33,22 @@ public class Product {
     @Column(name = "brand")
     private String brand;
 
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getFlavor() {
+        return flavor;
+    }
+
+    public void setFlavor(String flavor) {
+        this.flavor = flavor;
+    }
+
     @Column(name = "flavor")
     private String flavor;
 

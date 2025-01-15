@@ -5,7 +5,28 @@ public class ProductDto {
     private String description;
     private String category;
     private Double price;
+    private Integer stock;
+    private String brand;
+    private String flavor;
     
+    public Integer getStock() {
+        return stock;
+    }
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+    public String getBrand() {
+        return brand;
+    }
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+    public String getFlavor() {
+        return flavor;
+    }
+    public void setFlavor(String flavor) {
+        this.flavor = flavor;
+    }
     public String getName() {
         return name;
     }

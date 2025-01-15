@@ -1,12 +1,17 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductFilterDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
 
 public interface ProductService {
-    Product createProduct(Product product);
+    Product createProduct(ProductDto dto, MultipartFile imageFile);
+
+
     List<Product> getAllProducts();
     Product getProductById(Long id);
     Product updateProduct(Long id, Product product);
@@ -18,5 +23,11 @@ public interface ProductService {
     List<Product> searchProducts(String term);
 
     List<Product> getAllProductsSorted(String sortBy);
+
+    List<String> getDistinctBrands();
+
+    List<String> getDistinctFlavors();
+
+    Page<Product> advancedSearch(ProductFilterDto filter, int page, int size, String sortBy);
 
 }

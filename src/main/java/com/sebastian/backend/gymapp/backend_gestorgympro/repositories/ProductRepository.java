@@ -9,9 +9,10 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Categor
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
+public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
     Page<Product> findByCategory(Category category, Pageable pageable); 
 
@@ -23,6 +24,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     "ORDER BY SUM(od.quantity) DESC")
     List<Product> findAllOrderBySalesDesc();
 
+
+    @Query("SELECT DISTINCT p.brand FROM Product p WHERE p.brand IS NOT NULL")
+    List<String> findDistinctBrands();
+
+    @Query("SELECT DISTINCT p.flavor FROM Product p WHERE p.flavor IS NOT NULL")
+    List<String> findDistinctFlavors();
 
 
 

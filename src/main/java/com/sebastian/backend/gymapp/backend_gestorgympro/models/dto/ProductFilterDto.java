@@ -1,12 +1,27 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 
+import java.util.List;
+
 public class ProductFilterDto {
     private String category;
     private Boolean inStock;
-    private String brand;
-    private String flavor;
     private Integer minPrice;
     private Integer maxPrice;
+    private List<String> brands;
+    
+    public List<String> getBrands() {
+        return brands;
+    }
+    public void setBrands(List<String> brands) {
+        this.brands = brands;
+    }
+    public List<String> getFlavors() {
+        return flavors;
+    }
+    public void setFlavors(List<String> flavors) {
+        this.flavors = flavors;
+    }
+    private List<String> flavors;
 
     
     public String getCategory() {
@@ -21,18 +36,7 @@ public class ProductFilterDto {
     public void setInStock(Boolean inStock) {
         this.inStock = inStock;
     }
-    public String getBrand() {
-        return brand;
-    }
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-    public String getFlavor() {
-        return flavor;
-    }
-    public void setFlavor(String flavor) {
-        this.flavor = flavor;
-    }
+
     public Integer getMinPrice() {
         return minPrice;
     }
