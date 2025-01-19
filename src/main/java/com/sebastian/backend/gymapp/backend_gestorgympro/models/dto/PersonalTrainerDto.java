@@ -1,5 +1,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 
+import java.math.BigDecimal;
+
 public class PersonalTrainerDto {
     private Long id;
     private String username;
@@ -15,10 +17,21 @@ public class PersonalTrainerDto {
     private String studies;
     private String certifications;
     private String description;
+     private BigDecimal monthlyFee;
+
+     private String instagramUrl;
+     private String whatsappNumber;
+
+
+     public String getInstagramUrl() { return instagramUrl; }
+     public void setInstagramUrl(String instagramUrl) { this.instagramUrl = instagramUrl; }
+ 
+     public String getWhatsappNumber() { return whatsappNumber; }
+     public void setWhatsappNumber(String whatsappNumber) { this.whatsappNumber = whatsappNumber; }
 
     public PersonalTrainerDto(Long id, String username, String email, String specialization,
     Integer experienceYears, Boolean availability, String profileImageUrl,
-    String title, String studies, String certifications, String description) {
+    String title, String studies, String certifications, String description, BigDecimal monthlyFee) {
     this.id = id;
     this.username = username;
     this.email = email;
@@ -30,6 +43,16 @@ public class PersonalTrainerDto {
     this.studies = studies;
     this.certifications = certifications;
     this.description = description;
+    this.monthlyFee =  monthlyFee;
+    }
+
+    public BigDecimal getMonthlyFee() {
+        return monthlyFee;
+    }
+
+
+    public void setMonthlyFee(BigDecimal monthlyFee) {
+        this.monthlyFee = monthlyFee;
     }
 
 
@@ -124,5 +147,5 @@ public class PersonalTrainerDto {
         this.description = description;
     }
 
-    // Resto de getters y setters existentes...
+    
 }

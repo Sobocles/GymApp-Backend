@@ -68,23 +68,12 @@ public class PaymentService {
         return paymentRepository.findByExternalReference(externalReference);
     }
 
-    public BigDecimal getRevenueByPlanType(String planType) {
-        System.out.println("Parámetro planType recibido: " + planType);
-        BigDecimal result = paymentRepository.getRevenueByPlanType(planType);
-        return result != null ? result : BigDecimal.ZERO;
-    }
+
     
     
 
     
-    /**
-         * Obtiene la suma total de todos los pagos registrados.
-         *
-         * @return La suma total de los pagos como BigDecimal.
-         */
-        public BigDecimal getTotalRevenue() {
-            return paymentRepository.getTotalRevenue();
-        }
+  
 
      
 

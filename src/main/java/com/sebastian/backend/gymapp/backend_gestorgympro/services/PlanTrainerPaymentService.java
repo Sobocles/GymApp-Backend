@@ -106,17 +106,48 @@ public class PlanTrainerPaymentService {
     
     private BigDecimal calculateTotalPrice(Plan plan, PersonalTrainer trainer) {
         BigDecimal total = BigDecimal.ZERO;
+    
         if (plan != null) {
-            total = total.add(plan.getPrice());
+            // Si 'price' ya es el total del año/trimestre/mes,
+            // NO multiplicamos por plan.getDurationMonths().
+            BigDecimal planBasePrice = plan.getPrice();
+    
+            // Aplicas el descuento (si existe)
+            if (plan.getDiscount() != null && plan.getDiscount() > 0) {
+                BigDecimal discountFactor = BigDecimal.valueOf(plan.getDiscount())
+                                                      .divide(BigDecimal.valueOf(100));
+                BigDecimal discountAmount = planBasePrice.multiply(discountFactor);
+                planBasePrice = planBasePrice.subtract(discountAmount);
+    
+                if (planBasePrice.compareTo(BigDecimal.ZERO) < 0) {
+                    planBasePrice = BigDecimal.ZERO;
+                }
+            }
+    
+            total = total.add(planBasePrice);
         }
+    
         if (trainer != null) {
-            total = total.add(trainer.getMonthlyFee());
+            // Ahora: ¿quieres cobrar todo el año de entrenador?
+            // Si es un plan anual, trainerFee * 12, etc.
+            // O si 'monthlyFee' es "la tarifa total del periodo"? 
+            // Depende de tu modelo. Supón que monthlyFee = costo por mes, 
+            // y deseas cobrar todos los 12 meses:
+            int months = (plan != null) ? plan.getDurationMonths() : 1;
+            BigDecimal trainerFeeForAllMonths = trainer.getMonthlyFee().multiply(BigDecimal.valueOf(months));
+    
+            total = total.add(trainerFeeForAllMonths);
         }
+    
         if (total.compareTo(BigDecimal.ZERO) == 0) {
             throw new IllegalArgumentException("Debe seleccionar al menos un plan o un entrenador.");
         }
+    
         return total;
     }
+    
+    
+    
     
     private Payment buildPayment(User user, Plan plan, PersonalTrainer trainer, BigDecimal totalPrice) {
         Payment payment = new Payment();

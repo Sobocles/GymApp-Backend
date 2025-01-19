@@ -52,6 +52,50 @@ public class Product {
     @Column(name = "flavor")
     private String flavor;
 
+    @Column(name = "discount_percent", nullable = true)
+    private Integer discountPercent;
+
+    @Column(name = "discount_reason", nullable = true)
+    private String discountReason;
+
+    @Column(name = "discount_start", nullable = true)
+    private LocalDateTime discountStart;
+
+    @Column(name = "discount_end", nullable = true)
+    private LocalDateTime discountEnd;
+
+    public Integer getDiscountPercent() {
+        return discountPercent;
+    }
+
+    public void setDiscountPercent(Integer discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+
+    public String getDiscountReason() {
+        return discountReason;
+    }
+
+    public void setDiscountReason(String discountReason) {
+        this.discountReason = discountReason;
+    }
+
+    public LocalDateTime getDiscountStart() {
+        return discountStart;
+    }
+
+    public void setDiscountStart(LocalDateTime discountStart) {
+        this.discountStart = discountStart;
+    }
+
+    public LocalDateTime getDiscountEnd() {
+        return discountEnd;
+    }
+
+    public void setDiscountEnd(LocalDateTime discountEnd) {
+        this.discountEnd = discountEnd;
+    }
+
     public Integer getStock() {
         return stock;
     }

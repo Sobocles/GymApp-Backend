@@ -1,9 +1,9 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.CalendarEventDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Booking;
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Routine;
+
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerScheduleService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 
@@ -52,13 +51,13 @@ public class ClientController {
         List<BodyMeasurement> measurements = trainerService.getClientBodyMeasurements(clientId);
         return ResponseEntity.ok(measurements);
     }
-
+/* 
     @GetMapping("/{clientId}/routines")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<List<Routine>> getRoutines(@PathVariable Long clientId) {
         List<Routine> routines = trainerService.getClientRoutines(clientId);
         return ResponseEntity.ok(routines);
-    }
+    } */
 
     @GetMapping("/{clientId}/sessions")
     @PreAuthorize("hasRole('USER')")

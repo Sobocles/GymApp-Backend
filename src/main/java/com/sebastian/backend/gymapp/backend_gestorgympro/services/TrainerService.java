@@ -13,28 +13,28 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdat
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Routine;
+
 
 public interface TrainerService {
 
     void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, 
-                       BigDecimal monthlyFee, String title, String studies, String certifications, String description);
+                       BigDecimal monthlyFee, String title, String studies, String certifications, String description, String instagramUrl, String whatsappNumber );
 
     void updateTrainerDetails(String email, TrainerUpdateRequest request);
 
 
     void addClientToTrainer(Long trainerId, Long clientId);
 
-    void removeClientFromTrainer(Long trainerId, Long clientId);
+    //void removeClientFromTrainer(Long trainerId, Long clientId);
 
        void addBodyMeasurement(Long trainerId, Long clientId, BodyMeasurementDto measurementDto);
 
 
-    void addRoutine(Long trainerId, Long clientId, Routine routine);
+    //void addRoutine(Long trainerId, Long clientId, Routine routine);
 
     List<BodyMeasurement> getClientBodyMeasurements(Long clientId);
 
-    List<Routine> getClientRoutines(Long clientId);
+    //List<Routine> getClientRoutines(Long clientId);
 
     List<UserDto> getAssignedClients(Long trainerId);
 

@@ -8,7 +8,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.CloudinaryService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProductService;
@@ -18,12 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; 
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -39,7 +41,7 @@ public class ProductController {
     @Autowired
     private CategoryService categoryService;
 
-     @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<?> createProduct(
         @RequestParam("name") String name,
@@ -49,9 +51,13 @@ public class ProductController {
         @RequestParam("stock") Integer stock,
         @RequestParam("brand") String brand,
         @RequestParam("flavor") String flavor,
-        @RequestPart(value = "image", required = false) MultipartFile image
+        @RequestPart(value = "image", required = false) MultipartFile image,
+        @RequestParam(value = "discountPercent", required = false) Integer discountPercent,
+        @RequestParam(value = "discountReason", required = false) String discountReason,
+        @RequestParam(value = "discountStart", required = false) String discountStartStr,
+        @RequestParam(value = "discountEnd", required = false) String discountEndStr
     ) {
-        // 1) Crear un DTO con los parámetros
+        // 1) Construir el DTO
         ProductDto dto = new ProductDto();
         dto.setName(name);
         dto.setDescription(description);
@@ -60,37 +66,32 @@ public class ProductController {
         dto.setStock(stock);
         dto.setBrand(brand);
         dto.setFlavor(flavor);
-
+        dto.setDiscountPercent(discountPercent);
+        dto.setDiscountReason(discountReason);
+        dto.setDiscountStart(discountStartStr);
+        dto.setDiscountEnd(discountEndStr);
+    
         try {
-            // 2) Llamar al servicio
+            // 2) Llamar al servicio, que se encargará de crear el producto
             Product createdProduct = productService.createProduct(dto, image);
-            // 3) Responder OK (200)
+    
+            // 3) Retornar la respuesta exitosa (código 200)
             return ResponseEntity.ok(createdProduct);
-
+    
         } catch (IllegalArgumentException ex) {
-            // Por ejemplo, si la categoría no existe
-            return ResponseEntity.badRequest().body(ex.getMessage());
-
+            // Ejemplo: categoría no existe, o algún otro error de argumentos
+            return ResponseEntity.badRequest().body("Error: " + ex.getMessage());
+    
         } catch (RuntimeException ex) {
-            // Error subiendo imagen o cualquier otra
-            return ResponseEntity.status(500)
-                                 .body("Error interno al crear producto: " + ex.getMessage());
+            // Ejemplo: error subiendo imagen a Cloudinary, etc.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error interno al crear producto: " + ex.getMessage());
         }
     }
     
+    
 
-    @GetMapping("/products")
-    public ResponseEntity<List<Product>> getAllProducts(@RequestParam(required = false) String category) {
-        if (category != null && !category.isEmpty()) {
-            // Filtrar por categoría
-            Category categoryEntity = categoryService.getCategoryByName(category);
-            List<Product> productsByCategory = productService.getProductsByCategory(categoryEntity);
-            return ResponseEntity.ok(productsByCategory);
-        } else {
-            // Sin filtro de categoría
-            return ResponseEntity.ok(productService.getAllProducts());
-        }
-    }
+
 
     
     @GetMapping("/products/{id}")
@@ -110,7 +111,11 @@ public class ProductController {
         @RequestParam(required = false) Integer stock,
         @RequestParam(required = false) String brand,
         @RequestParam(required = false) String flavor,
-        @RequestParam(required = false) MultipartFile image
+        @RequestParam(required = false) MultipartFile image,
+        @RequestParam(required = false) Integer discountPercent,
+        @RequestParam(required = false) String discountReason,
+        @RequestParam(required = false) String discountStart, 
+        @RequestParam(required = false) String discountEnd
     ) {
         Product productDetails = productService.getProductById(id);
     
@@ -120,6 +125,17 @@ public class ProductController {
         if (stock != null) productDetails.setStock(stock);
         if (brand != null) productDetails.setBrand(brand);
         if (flavor != null) productDetails.setFlavor(flavor);
+        if (discountPercent != null) productDetails.setDiscountPercent(discountPercent);
+        if (discountReason != null) productDetails.setDiscountReason(discountReason);
+
+            if (discountStart != null) {
+            LocalDateTime start = LocalDateTime.parse(discountStart); // asumiendo ISO
+            productDetails.setDiscountStart(start);
+            }
+            if (discountEnd != null) {
+            LocalDateTime end = LocalDateTime.parse(discountEnd);
+            productDetails.setDiscountEnd(end);
+            }
     
         if (category != null) {
             Category categoryEntity = categoryService.getCategoryByName(category);
@@ -179,14 +195,7 @@ public ResponseEntity<Page<Product>> getProductsPage(
 
     // ProductController.java
 
-    @GetMapping("/products/sorted")
-    public ResponseEntity<List<Product>> getProductsSorted(
-        @RequestParam(value = "sortBy", required = false, defaultValue = "price_asc") String sortBy
-    ) {
-        // Este método delega la lógica a tu servicio
-        List<Product> sortedProducts = productService.getAllProductsSorted(sortBy);
-        return ResponseEntity.ok(sortedProducts);
-    }
+
 
     
     @GetMapping("/products/brands")

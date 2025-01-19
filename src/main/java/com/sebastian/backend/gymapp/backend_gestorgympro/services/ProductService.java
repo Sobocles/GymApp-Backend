@@ -16,13 +16,13 @@ public interface ProductService {
     Product getProductById(Long id);
     Product updateProduct(Long id, Product product);
     void deleteProduct(Long id);
-    List<Product> getProductsByCategory(Category category);
+    //List<Product> getProductsByCategory(Category category);
 
     Page<Product> findByCategory(Category category, Pageable pageable);
     Page<Product> findAll(Pageable pageable);
     List<Product> searchProducts(String term);
 
-    List<Product> getAllProductsSorted(String sortBy);
+    //List<Product> getAllProductsSorted(String sortBy);
 
     List<String> getDistinctBrands();
 

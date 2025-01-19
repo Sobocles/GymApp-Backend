@@ -3,11 +3,33 @@ package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 import java.math.BigDecimal;
 
 public class TrainerUpdateRequest {
-        private String title;
+    private String title;
+
     private String studies;
+
     private String certifications;
+
     private String description;
+
     private BigDecimal monthlyFee;
+
+    private String instagramUrl;
+    
+    private String whatsappNumber;
+
+
+    public String getInstagramUrl() {
+        return instagramUrl;
+    }
+    public void setInstagramUrl(String instagramUrl) {
+        this.instagramUrl = instagramUrl;
+    }
+    public String getWhatsappNumber() {
+        return whatsappNumber;
+    }
+    public void setWhatsappNumber(String whatsappNumber) {
+        this.whatsappNumber = whatsappNumber;
+    }
     public String getTitle() {
         return title;
     }

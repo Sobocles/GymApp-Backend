@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,7 +28,7 @@ public class ProductServiceImpl implements ProductService {
     
     private final ProductRepository productRepository;
 
-    private ProductSpecification productSpecification;
+
 
      @Autowired
     private CategoryService categoryService;
@@ -45,7 +46,7 @@ public class ProductServiceImpl implements ProductService {
             // 1) Buscar categoría
             Category categoryEntity = categoryService.getCategoryByName(dto.getCategory());
             if (categoryEntity == null) {
-                // Podrías lanzar una excepción custom o IllegalArgumentException:
+       
                 throw new IllegalArgumentException("La categoría no existe: " + dto.getCategory());
             }
 
@@ -54,6 +55,8 @@ public class ProductServiceImpl implements ProductService {
             if (imageFile != null && !imageFile.isEmpty()) {
                 imageUrl = cloudinaryService.uploadImage(imageFile);
             }
+
+            
 
             // 3) Construir la entidad Product
             Product product = new Product();
@@ -65,6 +68,13 @@ public class ProductServiceImpl implements ProductService {
             product.setBrand(dto.getBrand());
             product.setFlavor(dto.getFlavor());
             product.setImageUrl(imageUrl);
+
+            if (dto.getDiscountStart() != null && !dto.getDiscountStart().isEmpty()) {
+            product.setDiscountStart(LocalDateTime.parse(dto.getDiscountStart()));
+    }
+            if (dto.getDiscountEnd() != null && !dto.getDiscountEnd().isEmpty()) {
+                product.setDiscountEnd(LocalDateTime.parse(dto.getDiscountEnd()));
+            }
 
             // Si no está seteado, inicializamos salesCount
             if (product.getSalesCount() == null) {
@@ -117,10 +127,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.delete(product);
     }
 
-    @Override
-    public List<Product> getProductsByCategory(Category category) {
-        return productRepository.findByCategory(category);
-    }
+
 
     @Override
     public Page<Product> findByCategory(Category category, Pageable pageable) {
@@ -137,33 +144,7 @@ public class ProductServiceImpl implements ProductService {
         // Ejemplo sencillo usando un método finder en el repositorio
         return productRepository.findByNameContainingIgnoreCase(term);
     }
-/* 
-    @Override
-    public List<Product> getAllProductsSorted(String sortBy) {
-        switch (sortBy) {
-            case "best_selling":
 
-            return productRepository.findAllOrderBySalesDesc();
-    
-            case "price_desc":
-                // De mayor a menor
-                return productRepository.findAll(org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.DESC,
-                        "price"
-                ));
-    
-            case "price_asc":
-            default:
-                // De menor a mayor
-                return productRepository.findAll(org.springframework.data.domain.Sort.by(
-                        org.springframework.data.domain.Sort.Direction.ASC,
-                        "price"
-                ));
-        }
-    }
-
-    
-   */ 
 
    public List<String> getDistinctBrands() {
     return productRepository.findDistinctBrands();

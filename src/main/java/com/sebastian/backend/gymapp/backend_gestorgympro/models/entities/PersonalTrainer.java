@@ -42,9 +42,41 @@ public class PersonalTrainer {
     @Column(name = "description", nullable = true, length = 2000)
     private String description;
 
-        // Relación Many-to-Many con Plan
-        @ManyToMany(mappedBy = "includedTrainers")
-        private List<Plan> plans;
+    @ManyToMany(mappedBy = "includedTrainers")
+    private List<Plan> plans;
+
+    @Column(name = "instagram_url", nullable = true)
+    private String instagramUrl;
+    
+    @Column(name = "whatsapp_number", nullable = true)
+    private String whatsappNumber;
+
+    @Column(name = "certification_file_url", nullable = true)
+    private String certificationFileUrl;
+
+    public String getCertificationFileUrl() {
+        return certificationFileUrl;
+    }
+
+    public void setCertificationFileUrl(String certificationFileUrl) {
+        this.certificationFileUrl = certificationFileUrl;
+    }
+
+    public String getInstagramUrl() {
+        return instagramUrl;
+    }
+
+    public void setInstagramUrl(String instagramUrl) {
+        this.instagramUrl = instagramUrl;
+    }
+
+    public String getWhatsappNumber() {
+        return whatsappNumber;
+    }
+
+    public void setWhatsappNumber(String whatsappNumber) {
+        this.whatsappNumber = whatsappNumber;
+    }
 
     public List<Plan> getPlans() {
             return plans;

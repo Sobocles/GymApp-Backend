@@ -46,6 +46,37 @@ public class Plan {
         @JsonIgnore // Evita recursión infinita al serializar
         private List<PersonalTrainer> includedTrainers;
 
+
+        @Column(name = "active", nullable = false)
+        private boolean active = true;  // true => disponible, false => inactivo/archivado
+    
+
+
+        @Column(name = "version_number", nullable = false)
+        private int versionNumber = 1; // Empezamos en 1
+
+    
+        @Column(name = "discount_reason", nullable = true)
+        private String discountReason; 
+
+        private Integer durationMonths; 
+
+    public Integer getDurationMonths() {
+            return durationMonths;
+        }
+
+        public void setDurationMonths(Integer durationMonths) {
+            this.durationMonths = durationMonths;
+        }
+
+    public String getDiscountReason() {
+            return discountReason;
+        }
+
+        public void setDiscountReason(String discountReason) {
+            this.discountReason = discountReason;
+        }
+
     public List<PersonalTrainer> getIncludedTrainers() {
             return includedTrainers;
         }
@@ -111,6 +142,21 @@ public class Plan {
         this.discount = discount;
     }
 
+    
+    public boolean isActive() {
+        return active;
+    }
 
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public int getVersionNumber() {
+        return versionNumber;
+    }
+
+    public void setVersionNumber(int versionNumber) {
+        this.versionNumber = versionNumber;
+    }
     
 }

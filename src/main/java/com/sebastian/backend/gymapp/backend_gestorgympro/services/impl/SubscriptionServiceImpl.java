@@ -12,6 +12,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Persona
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.SubscriptionRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 
 @Service
@@ -19,6 +20,9 @@ public class SubscriptionServiceImpl implements SubscriptionService{
 
     @Autowired
     private SubscriptionRepository subscriptionRepository;
+
+    @Autowired
+    private PlanService plan;
 
     public Subscription createSubscription(Subscription subscription) {
         return subscriptionRepository.save(subscription);
@@ -38,6 +42,14 @@ public class SubscriptionServiceImpl implements SubscriptionService{
         subscription.setEndDate(LocalDate.now().plusYears(1)); // Por ejemplo, un año
         subscription.setActive(true);
         subscription.setPayment(payment); // Establecer el pago asociado
+        // Ejemplo dentro de tu PaymentNotificationService o SubscriptionService
+        Plan plan = payment.getPlan();
+        if (plan != null) {
+            subscription.setPlanNameSnapshot(plan.getName());
+            subscription.setPlanPriceSnapshot(plan.getPrice());
+            subscription.setPlanVersionSnapshot(plan.getVersionNumber());
+        }
+
         return subscriptionRepository.save(subscription);
     }
 

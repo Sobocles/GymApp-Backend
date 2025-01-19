@@ -52,7 +52,7 @@ public class TrainerServiceImpl implements TrainerService{
     @Autowired
     private TrainerClientRepository trainerClientRepository;
 
-    // Agrega estas líneas para inyectar los servicios faltantes
+
     @Autowired
     private PersonalTrainerSubscriptionService personalTrainerSubscriptionService;
 
@@ -70,7 +70,7 @@ public class TrainerServiceImpl implements TrainerService{
     private TrainerAvailabilityRepository trainerAvailabilityRepository;
 
 @Transactional
-public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description) {
+public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description, String instagramUrl, String whatsappNumber) {
     Optional<User> userOptional = userRepository.findById(userId);
     if (userOptional.isEmpty()) {
         throw new EntityNotFoundException("Usuario no encontrado con ID: " + userId);
@@ -104,6 +104,8 @@ public void assignTrainerRole(Long userId, String specialization, Integer experi
     personalTrainer.setStudies(studies);
     personalTrainer.setCertifications(certifications);
     personalTrainer.setDescription(description);
+    personalTrainer.setInstagramUrl(instagramUrl);
+    personalTrainer.setWhatsappNumber(whatsappNumber);
 
     personalTrainerRepository.save(personalTrainer);
     userRepository.save(user);
@@ -148,22 +150,6 @@ public void assignTrainerRole(Long userId, String specialization, Integer experi
         
         
 
-    @Override
-    @Transactional
-    public void removeClientFromTrainer(Long trainerId, Long clientId) {
-        // Implementación del método
-    }
-/* 
-        @Override
-    @Transactional(readOnly = true)
-    public List<UserDto> getAssignedClients(Long trainerId) {
-        List<TrainerClient> trainerClients = trainerClientRepository.findByTrainerId(trainerId);
-        List<UserDto> clients = trainerClients.stream()
-                .map(tc -> DtoMapperUser.builder().setUser(tc.getClient()).build())
-                .collect(Collectors.toList());
-        return clients;
-    }
-*/
 @Override
 @Transactional(readOnly = true)
 public List<UserDto> getAssignedClients(Long trainerId) {
@@ -202,7 +188,8 @@ public List<UserDto> getAssignedClients(Long trainerId) {
                     trainer.getTitle(),
                     trainer.getStudies(),
                     trainer.getCertifications(),
-                    trainer.getDescription()
+                    trainer.getDescription(),
+                    trainer.getMonthlyFee()
                 );
             })
             .collect(Collectors.toList());
@@ -389,7 +376,8 @@ public List<PersonalTrainerDto> getAvailableTrainersForSlot(LocalDate day, Local
                         trainer.getTitle(),
                         trainer.getStudies(),
                         trainer.getCertifications(),
-                        trainer.getDescription()
+                        trainer.getDescription(),
+                        trainer.getMonthlyFee()
                 );
             })
             .collect(Collectors.toList());

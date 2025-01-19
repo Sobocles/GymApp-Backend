@@ -14,6 +14,21 @@ public class TrainerAssignmentRequest {
     private String certifications;
     private String description;
 
+    private String instagramUrl;
+    private String whatsappNumber;
+
+    public String getInstagramUrl() {
+        return instagramUrl;
+    }
+    public void setInstagramUrl(String instagramUrl) {
+        this.instagramUrl = instagramUrl;
+    }
+    public String getWhatsappNumber() {
+        return whatsappNumber;
+    }
+    public void setWhatsappNumber(String whatsappNumber) {
+        this.whatsappNumber = whatsappNumber;
+    }
     // Getters y Setters de todos los campos
     public String getSpecialization() { return specialization; }
     public void setSpecialization(String specialization) { this.specialization = specialization; }

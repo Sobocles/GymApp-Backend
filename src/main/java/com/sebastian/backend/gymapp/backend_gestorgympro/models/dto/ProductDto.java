@@ -8,7 +8,36 @@ public class ProductDto {
     private Integer stock;
     private String brand;
     private String flavor;
+    private Integer discountPercent;
+    private String discountReason;
+    private String discountStart;  // "2025-04-01T12:00"
     
+    public String getDiscountStart() {
+        return discountStart;
+    }
+    public void setDiscountStart(String discountStart) {
+        this.discountStart = discountStart;
+    }
+    public String getDiscountEnd() {
+        return discountEnd;
+    }
+    public void setDiscountEnd(String discountEnd) {
+        this.discountEnd = discountEnd;
+    }
+    private String discountEnd; 
+    
+    public Integer getDiscountPercent() {
+        return discountPercent;
+    }
+    public void setDiscountPercent(Integer discountPercent) {
+        this.discountPercent = discountPercent;
+    }
+    public String getDiscountReason() {
+        return discountReason;
+    }
+    public void setDiscountReason(String discountReason) {
+        this.discountReason = discountReason;
+    }
     public Integer getStock() {
         return stock;
     }
