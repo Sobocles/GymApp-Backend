@@ -21,6 +21,7 @@ public class PersonalTrainerDto {
 
      private String instagramUrl;
      private String whatsappNumber;
+     private String certificationFileUrl;
 
 
      public String getInstagramUrl() { return instagramUrl; }
@@ -31,7 +32,9 @@ public class PersonalTrainerDto {
 
     public PersonalTrainerDto(Long id, String username, String email, String specialization,
     Integer experienceYears, Boolean availability, String profileImageUrl,
-    String title, String studies, String certifications, String description, BigDecimal monthlyFee) {
+    String title, String studies, String certifications, String description, BigDecimal monthlyFee, String instagramUrl,       // si lo pones en el constructor
+    String whatsappNumber,
+    String certificationFileUrl){
     this.id = id;
     this.username = username;
     this.email = email;
@@ -44,6 +47,10 @@ public class PersonalTrainerDto {
     this.certifications = certifications;
     this.description = description;
     this.monthlyFee =  monthlyFee;
+    this.instagramUrl = instagramUrl;
+    this.whatsappNumber = whatsappNumber;
+    this.certificationFileUrl = certificationFileUrl;
+    
     }
 
     public BigDecimal getMonthlyFee() {

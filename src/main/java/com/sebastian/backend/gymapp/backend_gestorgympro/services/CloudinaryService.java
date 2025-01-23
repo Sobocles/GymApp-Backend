@@ -23,6 +23,7 @@ public class CloudinaryService {
     }
 
     public String uploadImage(MultipartFile file) throws IOException {
+        
         @SuppressWarnings("unchecked")
         Map<String, Object> params = ObjectUtils.asMap(
             "use_filename", true,
@@ -35,6 +36,18 @@ public class CloudinaryService {
         Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
         return (String) uploadResult.get("secure_url");
     }
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        @SuppressWarnings("unchecked")
+        Map<String, Object> params = ObjectUtils.asMap(
+            "resource_type", "raw"  // <-- Forzar "raw"
+        );
+    
+        @SuppressWarnings("unchecked")
+        Map<String, Object> uploadResult = cloudinary.uploader().upload(file.getBytes(), params);
+        return (String) uploadResult.get("secure_url");
+    }
+    
     
 
     public Map<String, Object> getImageDetails(String publicId) throws Exception {

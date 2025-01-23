@@ -44,6 +44,7 @@ public class ProductPaymentService {
         payment.setStatus("pending");
         payment.setPlanIncluded(false);
         payment.setTrainerIncluded(false);
+        payment.setPaymentType("producto"); 
 
         // 2. Guardar payment para obtener su ID (o podrías hacerlo al final con cascade)
         paymentService.savePayment(payment);

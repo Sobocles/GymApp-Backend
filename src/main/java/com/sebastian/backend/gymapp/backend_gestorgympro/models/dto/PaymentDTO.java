@@ -5,10 +5,44 @@ package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class PaymentDTO {
+
     private Long id;
+
     private String planName;
+
+    private LocalDateTime paymentDate;
+
+    
+
+    private BigDecimal transactionAmount;
+
+    private LocalDate subscriptionStartDate;
+
+    private LocalDate subscriptionEndDate;
+
+    private String paymentType; 
+
+    private String paymentMethod;
+
+    private List<ProductDto> products;
+    public List<ProductDto> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<ProductDto> products) {
+        this.products = products;
+    }
+
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
     public Long getId() {
         return id;
     }
@@ -51,12 +85,5 @@ public class PaymentDTO {
     public void setSubscriptionEndDate(LocalDate subscriptionEndDate) {
         this.subscriptionEndDate = subscriptionEndDate;
     }
-    private LocalDateTime paymentDate;
-    private String paymentMethod;
-    private BigDecimal transactionAmount;
-    private LocalDate subscriptionStartDate;
-    private LocalDate subscriptionEndDate;
 
-    // Getters y Setters
-    // ...
 }

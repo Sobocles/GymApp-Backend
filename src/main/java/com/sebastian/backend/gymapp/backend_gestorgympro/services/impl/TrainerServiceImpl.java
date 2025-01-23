@@ -1,5 +1,6 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services.impl;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,10 +12,12 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ActiveClientInfoDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.mappear.DtoMapperUser;
@@ -32,9 +35,13 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.RoleReposi
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerAvailabilityRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.TrainerClientRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.UserRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.CloudinaryService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
+import org.springframework.web.multipart.MultipartFile;
+
+
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -69,47 +76,60 @@ public class TrainerServiceImpl implements TrainerService{
     @Autowired
     private TrainerAvailabilityRepository trainerAvailabilityRepository;
 
-@Transactional
-public void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, BigDecimal monthlyFee, String title, String studies, String certifications, String description, String instagramUrl, String whatsappNumber) {
-    Optional<User> userOptional = userRepository.findById(userId);
-    if (userOptional.isEmpty()) {
-        throw new EntityNotFoundException("Usuario no encontrado con ID: " + userId);
+     @Autowired
+    private CloudinaryService cloudinaryService;
+
+ @Override
+    @Transactional
+    public void assignTrainerRoleWithFile(Long userId,
+                                          TrainerAssignmentRequest request,
+                                          MultipartFile certificationFile) throws IOException {
+
+        // (1) Verificar si el usuario existe
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Usuario no encontrado con ID: " + userId
+            ));
+
+        // (2) Asignar rol "ROLE_TRAINER" si no lo tiene
+        Role trainerRole = roleRepository.findByName("ROLE_TRAINER")
+            .orElseThrow(() -> new IllegalArgumentException("Rol 'ROLE_TRAINER' no existe"));
+
+        if (!user.getRoles().contains(trainerRole)) {
+            user.getRoles().add(trainerRole);
+            userRepository.save(user);
+        }
+
+        // (3) Verificar si existe ya un PersonalTrainer
+        if (personalTrainerRepository.existsByUserId(userId)) {
+            throw new IllegalArgumentException(
+                "Este usuario ya está registrado como PersonalTrainer."
+            );
+        }
+
+        // (4) Crear la entidad PersonalTrainer con los datos del request
+        PersonalTrainer pt = new PersonalTrainer();
+        pt.setUser(user);
+        pt.setSpecialization(request.getSpecialization());
+        pt.setExperienceYears(request.getExperienceYears());
+        pt.setAvailability(request.getAvailability());
+        pt.setMonthlyFee(request.getMonthlyFee());
+        pt.setTitle(request.getTitle());
+        pt.setStudies(request.getStudies());
+        pt.setCertifications(request.getCertifications());
+        pt.setDescription(request.getDescription());
+        pt.setInstagramUrl(request.getInstagramUrl());
+        pt.setWhatsappNumber(request.getWhatsappNumber());
+
+        // (5) Si vino un archivo, subirlo a Cloudinary y guardar la URL
+        if (certificationFile != null && !certificationFile.isEmpty()) {
+            String fileUrl = cloudinaryService.uploadFile(certificationFile);
+            pt.setCertificationFileUrl(fileUrl);
+        }
+
+        // (6) Guardar PersonalTrainer
+        personalTrainerRepository.save(pt);
     }
-
-    User user = userOptional.get();
-
-    // Verificar si el rol de ROLE_TRAINER existe
-    Role trainerRole = roleRepository.findByName("ROLE_TRAINER")
-            .orElseThrow(() -> new EntityNotFoundException("Rol 'ROLE_TRAINER' no encontrado"));
-
-    // Asignar el rol si no lo tiene
-    if (!user.getRoles().contains(trainerRole)) {
-        user.getRoles().add(trainerRole);
-    }
-
-    // Verificar si ya existe un registro de PersonalTrainer
-    if (personalTrainerRepository.existsByUserId(userId)) {
-        throw new IllegalArgumentException("Este usuario ya está registrado como personal trainer.");
-    }
-
-    PersonalTrainer personalTrainer = new PersonalTrainer();
-    personalTrainer.setUser(user);
-    personalTrainer.setSpecialization(specialization);
-    personalTrainer.setExperienceYears(experienceYears);
-    personalTrainer.setAvailability(availability);
-    personalTrainer.setMonthlyFee(monthlyFee);
-
-    // Asignar los nuevos campos
-    personalTrainer.setTitle(title);
-    personalTrainer.setStudies(studies);
-    personalTrainer.setCertifications(certifications);
-    personalTrainer.setDescription(description);
-    personalTrainer.setInstagramUrl(instagramUrl);
-    personalTrainer.setWhatsappNumber(whatsappNumber);
-
-    personalTrainerRepository.save(personalTrainer);
-    userRepository.save(user);
-}
 
         
 
@@ -189,7 +209,10 @@ public List<UserDto> getAssignedClients(Long trainerId) {
                     trainer.getStudies(),
                     trainer.getCertifications(),
                     trainer.getDescription(),
-                    trainer.getMonthlyFee()
+                    trainer.getMonthlyFee(),
+                    trainer.getInstagramUrl(),     // nuevo
+                    trainer.getWhatsappNumber(),   // nuevo
+                    trainer.getCertificationFileUrl() // nuevo
                 );
             })
             .collect(Collectors.toList());
@@ -377,7 +400,10 @@ public List<PersonalTrainerDto> getAvailableTrainersForSlot(LocalDate day, Local
                         trainer.getStudies(),
                         trainer.getCertifications(),
                         trainer.getDescription(),
-                        trainer.getMonthlyFee()
+                        trainer.getMonthlyFee(),
+                        trainer.getInstagramUrl(),     // nuevo
+                        trainer.getWhatsappNumber(),   // nuevo
+                        trainer.getCertificationFileUrl() // nuevo
                 );
             })
             .collect(Collectors.toList());

@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "subscriptions")
 public class Subscription {
@@ -17,6 +19,7 @@ public class Subscription {
         // Relación muchos a uno con User
         @ManyToOne
         @JoinColumn(name = "user_id", nullable = false)
+        @JsonIgnore
         private User user;
     
         // Relación muchos a uno con Plan

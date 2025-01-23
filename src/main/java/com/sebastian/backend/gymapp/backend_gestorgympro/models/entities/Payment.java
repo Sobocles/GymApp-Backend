@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "payments")
 public class Payment {
@@ -16,14 +18,17 @@ public class Payment {
     // Relación muchos a uno con User
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     // Relación muchos a uno con Plan
     @ManyToOne
     @JoinColumn(name = "plan_id", nullable = true)
+    @JsonIgnore
     private Plan plan;
 
     @OneToOne(mappedBy = "payment")
+    @JsonIgnore
     private Subscription subscription;
 
     @Column(name = "mercado_pago_id", nullable = true)
@@ -55,7 +60,25 @@ public class Payment {
     @Column(name = "trainer_included", nullable = false)
     private boolean trainerIncluded = false;
 
+    @Column(name = "payment_type", nullable = false)
+    private String paymentType; 
 
+
+        public Subscription getSubscription() {
+        return subscription;
+    }
+
+    public void setSubscription(Subscription subscription) {
+        this.subscription = subscription;
+    }
+
+    public String getPaymentType() {
+        return paymentType;
+    }
+
+    public void setPaymentType(String paymentType) {
+        this.paymentType = paymentType;
+    }
 
         // Getters y Setters
         public Long getTrainerId() { return trainerId; }

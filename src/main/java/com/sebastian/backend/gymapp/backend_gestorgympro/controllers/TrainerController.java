@@ -1,6 +1,8 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.controllers;
 
 
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -20,8 +22,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ActiveClientInfoDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
@@ -36,6 +40,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
+import org.springframework.http.MediaType;
 
 
 
@@ -52,26 +57,64 @@ public class TrainerController {
 
 // TrainerController.java
 
-@PostMapping("/{id}/assign")
+  @PostMapping(
+    path = "/{id}/assign", 
+    consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+)
 @PreAuthorize("hasRole('ADMIN')")
-public ResponseEntity<?> assignTrainerRole(@PathVariable Long id, @RequestBody TrainerAssignmentRequest request) {
+public ResponseEntity<?> assignTrainerRole(
+    @PathVariable Long id,
 
-    
-    trainerService.assignTrainerRole(
-        id,
-        request.getSpecialization(),
-        request.getExperienceYears(),
-        request.getAvailability(),
-        request.getMonthlyFee(),
-        request.getTitle(),          
-        request.getStudies(),
-        request.getCertifications(),
-        request.getDescription(),
-        request.getInstagramUrl(),
-        request.getWhatsappNumber()
-    );
-    return ResponseEntity.ok("Rol de Trainer asignado correctamente y especialización añadida");
+    // Todos los campos de tipo texto/numéricos en @RequestParam
+    // (o @RequestPart si lo prefieres, pero para Strings y Numbers suele bastar @RequestParam):
+    @RequestParam("specialization") String specialization,
+    @RequestParam("experienceYears") Integer experienceYears,
+    @RequestParam("availability") Boolean availability,
+    @RequestParam("monthlyFee") BigDecimal monthlyFee,
+    @RequestParam("title") String title,
+    @RequestParam("studies") String studies,
+    @RequestParam("certifications") String certifications,
+    @RequestParam("description") String description,
+    @RequestParam(value = "instagramUrl", required = false) String instagramUrl,
+    @RequestParam(value = "whatsappNumber", required = false) String whatsappNumber,
+
+    // El archivo se envía como @RequestPart 
+    // (aunque en muchos casos puede funcionar @RequestParam si es un solo archivo)
+    @RequestPart(value = "certificationFile", required = false) MultipartFile certificationFile
+) {
+    try {
+        // 1) Construir la clase TrainerAssignmentRequest con todos esos campos
+        TrainerAssignmentRequest request = new TrainerAssignmentRequest();
+        request.setSpecialization(specialization);
+        request.setExperienceYears(experienceYears);
+        request.setAvailability(availability);
+        request.setMonthlyFee(monthlyFee);
+        request.setTitle(title);
+        request.setStudies(studies);
+        request.setCertifications(certifications);
+        request.setDescription(description);
+        request.setInstagramUrl(instagramUrl);
+        request.setWhatsappNumber(whatsappNumber);
+
+        // 2) Llamar al servicio, pasándole el ID del usuario, el request y el archivo
+        trainerService.assignTrainerRoleWithFile(id, request, certificationFile);
+
+        // 3) Respuesta exitosa
+        return ResponseEntity.ok("Entrenador asignado y datos guardados satisfactoriamente");
+
+    } catch (IOException e) {
+        // Error al subir archivo
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Error al subir el archivo de certificación: " + e.getMessage());
+
+    } catch (Exception e) {
+        // Cualquier otra excepción en la lógica
+        return ResponseEntity.badRequest()
+                .body("Error en la asignación: " + e.getMessage());
+    }
 }
+
+
 
 
     

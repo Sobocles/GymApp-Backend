@@ -76,6 +76,10 @@ public class PaymentNotificationService {
                 }
                 dbPayment.setMercadoPagoId(mpPayment.getId().toString());
                 dbPayment.setUpdateDate(LocalDateTime.now());
+                dbPayment.setPaymentMethod(mpPayment.getPaymentMethodId()); 
+                
+                System.out.println(dbPayment);
+
                 paymentService.savePayment(dbPayment);
 
                 // Si está aprobado => manejar suscripciones y correo
@@ -96,13 +100,22 @@ public class PaymentNotificationService {
                     List<OrderDetail> details = orderDetailRepository.findByPaymentId(dbPayment.getId());
                     for (OrderDetail od : details) {
                         Product p = od.getProduct();
+
+                        System.out.println("Producto antes de actualizar:");
+                        System.out.println("Nombre: " + p.getName());
+                        System.out.println("Stock actual: " + p.getStock());
+                        System.out.println("Cantidad comprada: " + od.getQuantity());
                     
                         // Incrementar salesCount por la cantidad comprada
                         int nuevoSalesCount = p.getSalesCount() + od.getQuantity();
                         p.setSalesCount(nuevoSalesCount);
+
+                        System.out.println("salesCount"+p.getSalesCount());
                     
                         // Restar stock por la cantidad comprada
                         p.setStock(p.getStock() - od.getQuantity());
+
+                        System.out.println("cantidad de stock"+p.getStock());
                     
                         // Guardar el producto actualizado
                         productRepository.save(p);

@@ -1,9 +1,12 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.repositories;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
@@ -31,7 +34,22 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("SELECT DISTINCT p.flavor FROM Product p WHERE p.flavor IS NOT NULL")
     List<String> findDistinctFlavors();
 
+        @Query("""
+           SELECT p 
+           FROM Product p
+           WHERE p.discountPercent IS NOT NULL 
+             AND p.discountPercent > 0
+             AND p.discountStart <= :now
+             AND p.discountEnd >= :now
+           """)
+        List<Product> findActiveDiscounts(@Param("now") LocalDateTime now);
 
+
+        @Query("SELECT p FROM Product p WHERE p.salesCount = (SELECT MAX(p2.salesCount) FROM Product p2)")
+        List<Product> findMostSoldProducts();
+
+
+        
 
 }
 

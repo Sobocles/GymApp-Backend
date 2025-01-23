@@ -18,10 +18,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
+
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductServiceImpl implements ProductService {
@@ -103,23 +107,80 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado con ID: " + id));
     }
 
-    @Override
-    public Product updateProduct(Long id, Product productDetails) {
-        Product product = getProductById(id);
-    
-        // Actualizar los campos
-        if (productDetails.getName() != null) product.setName(productDetails.getName());
-        if (productDetails.getDescription() != null) product.setDescription(productDetails.getDescription());
-        if (productDetails.getPrice() != null) product.setPrice(productDetails.getPrice());
-        if (productDetails.getCategory() != null) product.setCategory(productDetails.getCategory());
-        if (productDetails.getBrand() != null) product.setBrand(productDetails.getBrand()); // Actualizar marca
-        if (productDetails.getFlavor() != null) product.setFlavor(productDetails.getFlavor()); // Actualizar sabor
-        if (productDetails.getImageUrl() != null) product.setImageUrl(productDetails.getImageUrl());
-    
-        // Guardar el producto actualizado
-        return productRepository.save(product);
-    }
-    
+
+        @Override
+        public Optional<Product> updateProduct(Long id, ProductDto dto, MultipartFile image) {
+            // 1. Obtener el producto existente. Si no existe, se lanza una excepción o se retorna Optional.empty().
+            Product existingProduct = getProductById(id);
+            
+            // 2. Actualizar los campos que vienen en el DTO (actualización parcial)
+            // Actualización de campos obligatorios (ya validados en el DTO)
+            if (dto.getName() != null && !dto.getName().trim().isEmpty()) {
+                existingProduct.setName(dto.getName());
+            }
+            if (dto.getDescription() != null && !dto.getDescription().trim().isEmpty()) {
+                existingProduct.setDescription(dto.getDescription());
+            }
+            if (dto.getPrice() != null) {
+                existingProduct.setPrice(BigDecimal.valueOf(dto.getPrice()));
+            }
+            if (dto.getStock() != null) {
+                existingProduct.setStock(dto.getStock());
+            }
+            if (dto.getBrand() != null && !dto.getBrand().trim().isEmpty()) {
+                existingProduct.setBrand(dto.getBrand());
+            }
+            if (dto.getFlavor() != null && !dto.getFlavor().trim().isEmpty()) {
+                existingProduct.setFlavor(dto.getFlavor());
+            }
+            
+            // Actualización de los campos de oferta (opcionales)
+            if (dto.getDiscountPercent() != null) {
+                existingProduct.setDiscountPercent(dto.getDiscountPercent());
+            }
+            if (dto.getDiscountReason() != null && !dto.getDiscountReason().trim().isEmpty()) {
+                existingProduct.setDiscountReason(dto.getDiscountReason());
+            }
+            if (dto.getDiscountStart() != null && !dto.getDiscountStart().trim().isEmpty()) {
+                try {
+                    existingProduct.setDiscountStart(LocalDateTime.parse(dto.getDiscountStart()));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Formato incorrecto en discountStart. Se espera ISO_LOCAL_DATE_TIME.");
+                }
+            }
+            if (dto.getDiscountEnd() != null && !dto.getDiscountEnd().trim().isEmpty()) {
+                try {
+                    existingProduct.setDiscountEnd(LocalDateTime.parse(dto.getDiscountEnd()));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Formato incorrecto en discountEnd. Se espera ISO_LOCAL_DATE_TIME.");
+                }
+            }
+
+            // 3. Actualizar la categoría: se asume que en el DTO el campo category se envía como string.
+            if (dto.getCategory() != null && !dto.getCategory().trim().isEmpty()) {
+                // Buscamos la categoría en base al nombre
+                Category categoryEntity = categoryService.getCategoryByName(dto.getCategory());
+                if (categoryEntity == null) {
+                    throw new IllegalArgumentException("La categoría no existe: " + dto.getCategory());
+                }
+                existingProduct.setCategory(categoryEntity);
+            }
+            
+            // 4. Actualizar la imagen: si se envía un archivo, se sube y se asigna la nueva URL.
+            if (image != null && !image.isEmpty()) {
+                try {
+                    String imageUrl = cloudinaryService.uploadImage(image);
+                    existingProduct.setImageUrl(imageUrl);
+                } catch (IOException e) {
+                    // Aquí se podría manejar el error de forma más específica.
+                    throw new RuntimeException("Error subiendo imagen a Cloudinary", e);
+                }
+            }
+            
+            // 5. Guardar y retornar el producto actualizado
+            Product savedProduct = productRepository.save(existingProduct);
+            return Optional.of(savedProduct);
+        }
 
     @Override
     public void deleteProduct(Long id) {
@@ -228,6 +289,18 @@ private Sort parseSort(String sortBy) {
         return Sort.by(Sort.Direction.ASC, "price");
     }
 }
+
+@Override
+public List<Product> getActiveDiscountProducts() {
+    LocalDateTime now = LocalDateTime.now();
+    return productRepository.findActiveDiscounts(now);
+}
+
+@Override
+public List<Product> getMostSoldProducts() {
+    return productRepository.findMostSoldProducts();
+}
+
 
 
 }

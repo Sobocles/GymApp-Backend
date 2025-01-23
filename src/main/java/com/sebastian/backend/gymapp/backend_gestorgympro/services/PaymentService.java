@@ -11,8 +11,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.OrderDetail;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PaymentRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.SubscriptionRepository;
 
@@ -28,6 +32,9 @@ public class PaymentService {
     @Autowired
     private EmailService emailService;
 
+        @Autowired
+    private OrderDetailRepository orderDetailRepository;
+
     public Payment savePayment(Payment payment) {
         Payment savedPayment = paymentRepository.save(payment);
 
@@ -38,25 +45,40 @@ public class PaymentService {
         return savedPayment;
     }
 
-   public List<PaymentDTO> getPaymentsByUserId(Long userId) {
-    List<Payment> payments = paymentRepository.findByUserIdAndStatus(userId, "approved");  // Filtrar desde BD
-    return payments.stream().map(payment -> {
-        PaymentDTO dto = new PaymentDTO();
-        dto.setId(payment.getId());
-        dto.setPlanName(payment.getPlan() != null ? payment.getPlan().getName() : "Sin Plan");
-        dto.setPaymentDate(payment.getPaymentDate());
-        dto.setPaymentMethod(payment.getPaymentMethod());
-        dto.setTransactionAmount(payment.getTransactionAmount());
-        
-        Optional<Subscription> subscriptionOpt = subscriptionRepository.findByPaymentId(payment.getId());
-        subscriptionOpt.ifPresent(subscription -> {
-            dto.setSubscriptionStartDate(subscription.getStartDate());
-            dto.setSubscriptionEndDate(subscription.getEndDate());
-        });
+    public List<PaymentDTO> getPaymentsByUserId(Long userId) {
+        List<Payment> payments = paymentRepository.findByUserIdAndStatus(userId, "approved");
+        return payments.stream().map(payment -> {
+            PaymentDTO dto = new PaymentDTO();
+            dto.setId(payment.getId());
+            dto.setPlanName(payment.getPlan() != null ? payment.getPlan().getName() : "Sin Plan");
+            dto.setPaymentDate(payment.getPaymentDate());
+            dto.setPaymentMethod(payment.getPaymentMethod());
+            dto.setTransactionAmount(payment.getTransactionAmount());
+            dto.setPaymentType(payment.getPaymentType());
+            dto.setPaymentMethod(payment.getPaymentMethod());
+    
+            // Obtener productos relacionados desde los detalles del pedido
+            List<OrderDetail> orderDetails = orderDetailRepository.findByPaymentId(payment.getId());
+            List<ProductDto> productDtos = orderDetails.stream().map(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                ProductDto productDto = new ProductDto();
+                productDto.setName(product.getName());
+                productDto.setPrice(product.getPrice().doubleValue());
+                productDto.setDescription(product.getDescription());
+                productDto.setBrand(product.getBrand());
+                productDto.setFlavor(product.getFlavor());
+                productDto.setImageUrl(product.getImageUrl());
+                productDto.setPaymentMethod(payment.getPaymentMethod());
+                return productDto;
+            }).collect(Collectors.toList());
+            dto.setProducts(productDtos);
+    
+            return dto;
+        }).collect(Collectors.toList());
+    }
+    
 
-        return dto;
-    }).collect(Collectors.toList());
-}
+    
 
     
 

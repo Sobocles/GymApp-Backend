@@ -2,6 +2,7 @@ package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,8 +31,27 @@ public class Product {
     @Column(name = "sales_count")
     private Integer salesCount = 0;
 
+
+
     @Column(name = "brand")
     private String brand;
+
+
+
+    @Column(name = "flavor")
+    private String flavor;
+
+    @Column(name = "discount_percent", nullable = true)
+    private Integer discountPercent;
+
+    @Column(name = "discount_reason", nullable = true)
+    private String discountReason;
+
+    @Column(name = "discount_start", nullable = true)
+    private LocalDateTime discountStart;
+
+    @Column(name = "discount_end", nullable = true)
+    private LocalDateTime discountEnd;
 
     public String getBrand() {
         return brand;
@@ -48,21 +68,6 @@ public class Product {
     public void setFlavor(String flavor) {
         this.flavor = flavor;
     }
-
-    @Column(name = "flavor")
-    private String flavor;
-
-    @Column(name = "discount_percent", nullable = true)
-    private Integer discountPercent;
-
-    @Column(name = "discount_reason", nullable = true)
-    private String discountReason;
-
-    @Column(name = "discount_start", nullable = true)
-    private LocalDateTime discountStart;
-
-    @Column(name = "discount_end", nullable = true)
-    private LocalDateTime discountEnd;
 
     public Integer getDiscountPercent() {
         return discountPercent;

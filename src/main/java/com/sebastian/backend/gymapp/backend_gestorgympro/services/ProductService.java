@@ -4,6 +4,8 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductFilte
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Page;
@@ -29,5 +31,13 @@ public interface ProductService {
     List<String> getDistinctFlavors();
 
     Page<Product> advancedSearch(ProductFilterDto filter, int page, int size, String sortBy);
+
+    List<Product> getActiveDiscountProducts();
+
+    Optional<Product> updateProduct(Long id, ProductDto dto, MultipartFile image);
+
+    List<Product> getMostSoldProducts();
+
+
 
 }

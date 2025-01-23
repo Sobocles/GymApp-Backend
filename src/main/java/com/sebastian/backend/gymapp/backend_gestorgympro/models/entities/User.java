@@ -19,7 +19,7 @@ import jakarta.persistence.OneToMany;
 
 import java.util.List;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.IUser;
 
 
@@ -61,6 +61,7 @@ public class User implements IUser  {
 
       // Nueva relación uno a muchos con Subscription
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Subscription> subscriptions;
 
     @Transient //un campo que es de la clase, que no se mapea a la base de datos como una columna

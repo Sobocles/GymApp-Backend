@@ -1,16 +1,92 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public class ProductDto {
+
+    
+   @NotBlank
     private String name;
+
+    @NotBlank
     private String description;
-    private String category;
+
+    @NotNull
+    @Positive
     private Double price;
+
+    private String imageUrl;
+
+
+    @NotNull
+    @PositiveOrZero
     private Integer stock;
+
+    @NotBlank
     private String brand;
+
+    @NotBlank
     private String flavor;
+    
+
     private Integer discountPercent;
+
     private String discountReason;
-    private String discountStart;  // "2025-04-01T12:00"
+
+    private String discountStart;
+
+    private String discountEnd;
+
+
+    private String category;
+
+    private String paymentMethod;
+
+    private Long id; 
+    private Integer salesCount; 
+
+    public ProductDto() {
+    }
+
+    public ProductDto(Long id, String name, Integer salesCount) {
+        this.id = id;
+        this.name = name;
+        this.salesCount = salesCount;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Integer getSalesCount() {
+        return salesCount;
+    }
+
+    public void setSalesCount(Integer salesCount) {
+        this.salesCount = salesCount;
+    }
+
+
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
     
     public String getDiscountStart() {
         return discountStart;
@@ -24,7 +100,7 @@ public class ProductDto {
     public void setDiscountEnd(String discountEnd) {
         this.discountEnd = discountEnd;
     }
-    private String discountEnd; 
+
     
     public Integer getDiscountPercent() {
         return discountPercent;

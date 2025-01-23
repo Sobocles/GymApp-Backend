@@ -188,6 +188,7 @@ public ResponseEntity<?> getDashboardInfo(Authentication auth) {
     List<Subscription> planSubs = subscriptionService.getSubscriptionsByUserId(user.getId());
     // Obtener suscripciones de entrenador personal
     List<PersonalTrainerSubscription> trainerSubs = personalTrainerSubscriptionService.getSubscriptionsByUserId(user.getId());
+    System.out.println(trainerSubs);
     // Obtener pagos del usuario
     List<PaymentDTO> payments = paymentService.getPaymentsByUserId(user.getId());
 
@@ -196,6 +197,7 @@ public ResponseEntity<?> getDashboardInfo(Authentication auth) {
     dashboardData.put("planSubscriptions", planSubs);
     dashboardData.put("trainerSubscriptions", trainerSubs);
     dashboardData.put("payments", payments); // Agregamos la lista de pagos
+    System.out.println(dashboardData);
 
     return ResponseEntity.ok(dashboardData);
 }

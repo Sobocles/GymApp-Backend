@@ -158,6 +158,7 @@ public class PlanTrainerPaymentService {
         payment.setTransactionAmount(totalPrice);
         payment.setTrainerIncluded(trainer != null);
         payment.setPlanIncluded(plan != null);
+        payment.setPaymentType("plan");
         return payment;
     }
     

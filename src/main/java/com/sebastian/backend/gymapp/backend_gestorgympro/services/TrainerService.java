@@ -1,14 +1,18 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ActiveClientInfoDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.BodyMeasurementDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PersonalTrainerDto;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerAssignmentRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.TrainerUpdateRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.UserDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.BodyMeasurement;
@@ -17,8 +21,8 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Persona
 
 public interface TrainerService {
 
-    void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, 
-                       BigDecimal monthlyFee, String title, String studies, String certifications, String description, String instagramUrl, String whatsappNumber );
+    //void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability, 
+                      // BigDecimal monthlyFee, String title, String studies, String certifications, String description, String instagramUrl, String whatsappNumber );
 
     void updateTrainerDetails(String email, TrainerUpdateRequest request);
 
@@ -52,6 +56,10 @@ Optional<PersonalTrainer> findPersonalTrainerById(Long trainerId);
     List<ActiveClientInfoDTO> getActiveClientsInfoForTrainer(Long personalTrainerId);
 
     List<PersonalTrainerDto> getAvailableTrainersForSlot(LocalDate day, LocalTime startTime, LocalTime endTime);
+
+       void assignTrainerRoleWithFile(Long userId,
+                                   TrainerAssignmentRequest request,
+                                   MultipartFile certificationFile) throws IOException;
 
 }
 
