@@ -10,7 +10,9 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +35,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 
 
-    @Override
+      @Override
     public UserDto updateProfile(UserRequest userRequest, MultipartFile file, String currentEmail) {
         Optional<User> optionalUser = userRepository.findByEmail(currentEmail);
         if (optionalUser.isEmpty()) {
@@ -42,12 +44,18 @@ public class ProfileServiceImpl implements ProfileService {
 
         User user = optionalUser.get();
 
-        if (userRequest.getUsername() != null) user.setUsername(userRequest.getUsername());
-        if (userRequest.getEmail() != null) user.setEmail(userRequest.getEmail());
+        // Actualizar datos básicos
+        if (userRequest.getUsername() != null) {
+            user.setUsername(userRequest.getUsername());
+        }
+        if (userRequest.getEmail() != null) {
+            user.setEmail(userRequest.getEmail());
+        }
         if (userRequest.getPassword() != null && !userRequest.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
 
+        // Subir imagen (si viene)
         if (file != null && !file.isEmpty()) {
             try {
                 String imageUrl = cloudinaryService.uploadImage(file);
@@ -58,7 +66,22 @@ public class ProfileServiceImpl implements ProfileService {
             }
         }
 
+        // Guardar
         userRepository.save(user);
-        return DtoMapperUser.builder().setUser(user).build();
+
+        // Convertir a DTO
+        UserDto dto = DtoMapperUser.builder().setUser(user).build();
+
+        // 1) Extraer roles de la entidad `user`
+        List<String> rolesList = user.getRoles()
+            .stream()
+            .map(role -> role.getName())  // "ROLE_ADMIN", "ROLE_TRAINER", etc
+            .collect(Collectors.toList());
+
+        // 2) Asignarlos al DTO
+        dto.setRoles(rolesList);
+
+        // Retornar
+        return dto;
     }
 }

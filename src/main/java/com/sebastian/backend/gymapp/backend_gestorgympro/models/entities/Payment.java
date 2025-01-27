@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -67,6 +68,9 @@ public class Payment {
         public Subscription getSubscription() {
         return subscription;
     }
+
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
 
     public void setSubscription(Subscription subscription) {
         this.subscription = subscription;

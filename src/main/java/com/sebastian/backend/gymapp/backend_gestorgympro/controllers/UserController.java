@@ -224,6 +224,12 @@ public ResponseEntity<?> getPersonalTrainer(Authentication authentication) {
     return ResponseEntity.ok(trainer);
 }
 
+        @PreAuthorize("hasRole('ADMIN')")
+        @GetMapping("/approved-payments")
+        public ResponseEntity<List<PaymentDTO>> getAllApprovedPayments() {
+            List<PaymentDTO> payments = paymentService.getAllApprovedPayments();
+            return ResponseEntity.ok(payments);
+        }
 
 
 }

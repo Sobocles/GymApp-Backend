@@ -79,34 +79,35 @@ public class TrainerServiceImpl implements TrainerService{
      @Autowired
     private CloudinaryService cloudinaryService;
 
- @Override
+    @Override
     @Transactional
     public void assignTrainerRoleWithFile(Long userId,
                                           TrainerAssignmentRequest request,
                                           MultipartFile certificationFile) throws IOException {
-
+    
         // (1) Verificar si el usuario existe
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Usuario no encontrado con ID: " + userId
             ));
-
-        // (2) Asignar rol "ROLE_TRAINER" si no lo tiene
+    
+        // (2) Obtener el rol "ROLE_TRAINER"
         Role trainerRole = roleRepository.findByName("ROLE_TRAINER")
             .orElseThrow(() -> new IllegalArgumentException("Rol 'ROLE_TRAINER' no existe"));
-
-        if (!user.getRoles().contains(trainerRole)) {
-            user.getRoles().add(trainerRole);
-            userRepository.save(user);
-        }
-
-        // (3) Verificar si existe ya un PersonalTrainer
+    
+        // *** SECCIÓN CLAVE: forzar a que quede solo el rol de entrenador ***
+        user.getRoles().clear();              // Eliminamos todos los roles actuales (incluyendo ROLE_USER, si existe)
+        user.getRoles().add(trainerRole);     // Agregamos únicamente ROLE_TRAINER
+        userRepository.save(user);
+        // *** FIN SECCIÓN CLAVE ***
+    
+        // (3) Verificar si ya existe un PersonalTrainer para este userId
         if (personalTrainerRepository.existsByUserId(userId)) {
             throw new IllegalArgumentException(
                 "Este usuario ya está registrado como PersonalTrainer."
             );
         }
-
+    
         // (4) Crear la entidad PersonalTrainer con los datos del request
         PersonalTrainer pt = new PersonalTrainer();
         pt.setUser(user);
@@ -120,17 +121,17 @@ public class TrainerServiceImpl implements TrainerService{
         pt.setDescription(request.getDescription());
         pt.setInstagramUrl(request.getInstagramUrl());
         pt.setWhatsappNumber(request.getWhatsappNumber());
-
-        // (5) Si vino un archivo, subirlo a Cloudinary y guardar la URL
+    
+        // (5) Subir archivo a Cloudinary (opcional) y guardar la URL
         if (certificationFile != null && !certificationFile.isEmpty()) {
             String fileUrl = cloudinaryService.uploadFile(certificationFile);
             pt.setCertificationFileUrl(fileUrl);
         }
-
+    
         // (6) Guardar PersonalTrainer
         personalTrainerRepository.save(pt);
     }
-
+    
         
 
 

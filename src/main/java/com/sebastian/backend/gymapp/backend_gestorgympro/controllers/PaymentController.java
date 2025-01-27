@@ -6,17 +6,24 @@ import com.mercadopago.exceptions.MPException;
 
 import com.mercadopago.resources.preference.Preference;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPersonalTrainerDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPlanDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentProductDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentNotificationService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentReportService;
-
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanTrainerPaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProductPaymentService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 
 import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +53,9 @@ public class PaymentController {
 
         @Autowired
     private ProductPaymentService productPaymentService;
+
+    @Autowired
+    private PaymentService paymentService;
 
   
 
@@ -130,10 +140,42 @@ public class PaymentController {
             }
         }
 
-        
+        @GetMapping("/personal_trainer")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PaymentPersonalTrainerDTO>> getApprovedPersonalTrainerPayments() {
+        List<PaymentPersonalTrainerDTO> payments = paymentService.getApprovedPersonalTrainerPayments();
+        return ResponseEntity.ok(payments);
+    }
 
 
+    @GetMapping("/approved_plans/page/{page}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<PaymentPlanDTO>> getApprovedPlanPaymentsPage(
+        @PathVariable int page,
+        @RequestParam(defaultValue = "6") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+    
+        Page<PaymentPlanDTO> paymentsPage = paymentService.getApprovedPlanPaymentsPage(pageable);
+    
+        return ResponseEntity.ok(paymentsPage);
+    }
 
+        @GetMapping("/approved_products/page/{page}")
+        @PreAuthorize("hasRole('ADMIN')")
+        public ResponseEntity<Page<PaymentProductDTO>> getApprovedProductPaymentsPage(
+            @PathVariable int page,
+            @RequestParam(defaultValue = "6") int size
+        ) {
+            // Usamos PageRequest para crear la paginación
+            Pageable pageable = PageRequest.of(page, size);
+            
+            Page<PaymentProductDTO> paymentsPage = paymentService.getApprovedProductPaymentsPage(pageable);
+
+            return ResponseEntity.ok(paymentsPage);
+        }
+
+    
     
     
 

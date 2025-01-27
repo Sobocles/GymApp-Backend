@@ -10,24 +10,33 @@ import java.util.List;
 public class PaymentDTO {
 
     private Long id;
-
+    private Long userId;
+    private String username;
     private String planName;
-
     private LocalDateTime paymentDate;
-
-    
-
     private BigDecimal transactionAmount;
-
     private LocalDate subscriptionStartDate;
-
     private LocalDate subscriptionEndDate;
-
     private String paymentType; 
-
     private String paymentMethod;
-
     private List<ProductDto> products;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public List<ProductDto> getProducts() {
         return products;
     }

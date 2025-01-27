@@ -35,12 +35,13 @@ public class ProfileController {
             userRequest.setUsername(username);
             userRequest.setEmail(email);
             userRequest.setPassword(password);
-
+            System.out.println("userRequest"+userRequest);
             // Obtener el email actual del usuario autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String currentEmail = authentication.getName();
-
+        
             UserDto updatedUser = profileService.updateProfile(userRequest, file, currentEmail);
+            System.out.println("Aqui el usuario actualizado"+updatedUser);
             return ResponseEntity.ok(updatedUser);
         } catch (Exception e) {
             e.printStackTrace();

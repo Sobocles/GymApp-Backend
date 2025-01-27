@@ -232,5 +232,12 @@ public ResponseEntity<Page<Product>> getProductsPage(
             }
             
 
+            @GetMapping("/products")
+public ResponseEntity<List<Product>> getAllProductsController() {
+    List<Product> productos = productService.getAllProducts();
+    return ResponseEntity.ok(productos);
+}
+
+
 
 }

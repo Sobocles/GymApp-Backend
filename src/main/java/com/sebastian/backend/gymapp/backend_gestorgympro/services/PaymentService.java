@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPersonalTrainerDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPlanDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentProductDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.ProductDto;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.OrderDetail;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
@@ -19,6 +22,9 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscri
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PaymentRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.SubscriptionRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @Service
 public class PaymentService {
@@ -144,6 +150,64 @@ public class PaymentService {
         emailService.sendEmail(email, subject, body);
     }
     
+    public List<PaymentDTO> getAllApprovedPayments() {
+        List<Payment> payments = paymentRepository.findByStatus("approved");
+        return payments.stream().map(payment -> {
+            PaymentDTO dto = new PaymentDTO();
+            dto.setId(payment.getId());
+            dto.setUserId(payment.getUser().getId());
+            dto.setUsername(payment.getUser().getUsername());
+            dto.setPlanName(payment.getPlan() != null ? payment.getPlan().getName() : "Sin Plan");
+            dto.setPaymentDate(payment.getPaymentDate());
+            dto.setPaymentMethod(payment.getPaymentMethod());
+            dto.setTransactionAmount(payment.getTransactionAmount());
+            dto.setPaymentType(payment.getPaymentType());
+
+            if (payment.getSubscription() != null) {
+                dto.setSubscriptionStartDate(payment.getSubscription().getStartDate());
+                dto.setSubscriptionEndDate(payment.getSubscription().getEndDate());
+            }
+
+            // Obtener productos relacionados desde los detalles del pedido
+            List<OrderDetail> orderDetails = orderDetailRepository.findByPaymentId(payment.getId());
+            List<ProductDto> productDtos = orderDetails.stream().map(orderDetail -> {
+                Product product = orderDetail.getProduct();
+                ProductDto productDto = new ProductDto();
+                productDto.setId(product.getId());
+                productDto.setName(product.getName());
+                productDto.setPrice(product.getPrice().doubleValue());
+                productDto.setDescription(product.getDescription());
+                productDto.setBrand(product.getBrand());
+                productDto.setFlavor(product.getFlavor());
+                productDto.setImageUrl(product.getImageUrl());
+                // Agrega otros campos relevantes si es necesario
+                return productDto;
+            }).collect(Collectors.toList());
+            dto.setProducts(productDtos);
+
+            return dto;
+        }).collect(Collectors.toList());
+    }
+
+        public List<PaymentPersonalTrainerDTO> getApprovedPersonalTrainerPayments() {
+        return paymentRepository.findApprovedPersonalTrainerPayments();
+    }
+
+
+
+
+
+    // PaymentService.java
+
+        public Page<PaymentProductDTO> getApprovedProductPaymentsPage(Pageable pageable) {
+            return paymentRepository.findApprovedProductPaymentsPage(pageable);
+        }
+
+        public Page<PaymentPlanDTO> getApprovedPlanPaymentsPage(Pageable pageable) {
+            return paymentRepository.findApprovedPlanPaymentsPage(pageable);
+        }
+
+
     
 }
 
