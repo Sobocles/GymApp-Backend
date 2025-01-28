@@ -75,4 +75,9 @@ public class ProductSpecification {
             return null;
         };
     }
+
+    // Agrega una especificación para active=true
+        public static Specification<Product> isActive() {
+            return (root, query, cb) -> cb.isTrue(root.get("active"));
+        }
 }

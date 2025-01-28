@@ -19,7 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     Page<Product> findByCategory(Category category, Pageable pageable); 
 
-    List<Product> findByNameContainingIgnoreCase(String name);
+    List<Product> findByNameContainingIgnoreCaseAndActiveTrue(String name);
 
     @Query("SELECT p FROM Product p " +
     "LEFT JOIN OrderDetail od ON p.id = od.product.id " +
@@ -49,7 +49,12 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
         List<Product> findMostSoldProducts();
 
 
-        
+        List<Product> findByActiveTrue();
+
+        Page<Product> findByActiveTrue(Pageable pageable);
+
+        // O para filtrar por categoría y producto activo
+        Page<Product> findByCategoryAndActiveTrue(Category category, Pageable pageable);
 
 }
 

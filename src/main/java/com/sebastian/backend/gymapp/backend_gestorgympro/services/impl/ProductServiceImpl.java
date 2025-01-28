@@ -98,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findByActiveTrue();
     }
 
     @Override
@@ -182,28 +182,30 @@ public class ProductServiceImpl implements ProductService {
             return Optional.of(savedProduct);
         }
 
-    @Override
-    public void deleteProduct(Long id) {
-        Product product = getProductById(id);
-        productRepository.delete(product);
-    }
+        @Override
+        public void deleteProduct(Long id) {
+            Product product = productRepository.findById(id)
+               .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado"));
+        
+            product.setActive(false);
+            productRepository.save(product);
+        }
+        
 
 
 
-    @Override
-    public Page<Product> findByCategory(Category category, Pageable pageable) {
-        return productRepository.findByCategory(category, pageable);
-    }
+        public Page<Product> findByCategory(Category category, Pageable pageable) {
+            return productRepository.findByCategoryAndActiveTrue(category, pageable);
+        }
 
     @Override
     public Page<Product> findAll(Pageable pageable) {
-        return productRepository.findAll(pageable);
+        return productRepository.findByActiveTrue(pageable);
     }
 
-        @Override
+    @Override
     public List<Product> searchProducts(String term) {
-        // Ejemplo sencillo usando un método finder en el repositorio
-        return productRepository.findByNameContainingIgnoreCase(term);
+        return productRepository.findByNameContainingIgnoreCaseAndActiveTrue(term);
     }
 
 
@@ -220,7 +222,7 @@ public Page<Product> advancedSearch(ProductFilterDto filter, int page, int size,
 
     Sort sort = parseSort(sortBy);  // Obtener ordenamiento por precio o ventas
     Pageable pageable = PageRequest.of(page, size, sort);  // Sin ordenar en paginación
-    Specification<Product> spec = Specification.where(null);
+    Specification<Product> spec = Specification.where(ProductSpecification.isActive());
 
     System.out.println("=== Iniciando advancedSearch ===");
     System.out.println("Filtros recibidos: " + filter);

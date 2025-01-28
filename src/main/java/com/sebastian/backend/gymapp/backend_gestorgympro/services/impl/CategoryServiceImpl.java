@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Category;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Product;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.CategoryRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.CategoryService;
 
@@ -26,6 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
         });
         Category category = new Category();
         category.setName(name);
+        category.setActive(true);
         return categoryRepository.save(category);
     }
 
@@ -37,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+        return categoryRepository.findByActiveTrue();
     }
 
     @Override
@@ -49,11 +51,22 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void deleteCategory(Long id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada con ID: " + id));
-        categoryRepository.delete(category);
+public void deleteCategory(Long id) {
+    Category category = categoryRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("Categoría no encontrada con ID: " + id));
+
+    // 1) Marcamos la categoría como inactiva
+    category.setActive(false);
+
+    // 2) Marcamos sus productos como inactivos
+    for (Product p : category.getProducts()) {
+        p.setActive(false);
     }
+
+    // 3) Guardamos la categoría
+    categoryRepository.save(category);
+}
+
 }
 
 

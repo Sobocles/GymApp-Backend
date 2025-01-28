@@ -155,24 +155,25 @@ public class ProductController {
 
 
 
-@GetMapping("/products/page/{page}")
-public ResponseEntity<Page<Product>> getProductsPage(
-    @PathVariable int page,
-    @RequestParam(defaultValue = "12") int size,
-    @RequestParam(required = false) String category
-) {
-    Pageable pageable = PageRequest.of(page, size);
-    Page<Product> productPage;
-
-    if (category != null && !category.isEmpty()) {
-        Category cat = categoryService.getCategoryByName(category);
-        productPage = productService.findByCategory(cat, pageable);
-    } else {
-        productPage = productService.findAll(pageable);
+    @GetMapping("/products/page/{page}")
+    public ResponseEntity<Page<Product>> getProductsPage(
+        @PathVariable int page,
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(required = false) String category
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Product> productPage;
+    
+        if (category != null && !category.isEmpty()) {
+            Category cat = categoryService.getCategoryByName(category);
+            productPage = productService.findByCategory(cat, pageable);  // solo activos
+        } else {
+            productPage = productService.findAll(pageable);              // solo activos
+        }
+        return ResponseEntity.ok(productPage);
     }
-
-    return ResponseEntity.ok(productPage);
-}
+    
+    
 
     // ProductController.java
     @GetMapping("/products/search")
