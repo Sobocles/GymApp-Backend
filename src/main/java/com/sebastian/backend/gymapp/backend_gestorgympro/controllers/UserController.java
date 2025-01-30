@@ -32,14 +32,15 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.User;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.request.UserRequest;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
-import com.sebastian.backend.gymapp.backend_gestorgympro.services.ProfileService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.TrainerService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.impl.SubscriptionServiceImpl;
+import com.sebastian.backend.gymapp.backend_gestorgympro.Utils.RandomPasswordUtil;
+
 
 import org.springframework.security.core.Authentication;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
-import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainerSubscription;
+
 
 
 import jakarta.validation.Valid;
@@ -103,20 +104,24 @@ private TrainerService trainerService;
     
     @PostMapping
     public ResponseEntity<?> create(@Valid @RequestBody User user, BindingResult result) {
-        System.out.println("=== Datos recibidos para crear usuario ===");
-        System.out.println("Username: " + user.getUsername());
-        System.out.println("Email: " + user.getEmail());
-        System.out.println("Admin: " + user.isAdmin());
-        System.out.println("Trainer: " + user.isTrainer());
-        System.out.println("Roles: " + user.getRoles());
-        System.out.println("Profile Image URL: " + user.getProfileImageUrl());
         if(result.hasErrors()){
             return validation(result);
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.save(user));
+    
+        // Generar contraseña aleatoria en el backend, ignorar la que venga del front.
+        String randomPassword = RandomPasswordUtil.generateRandomPassword();
+    
+        // Sobrescribimos cualquiera que venga del front.
+        user.setPassword(randomPassword);
+    
+        // Llamamos al service para guardar (allí se encripta y se envía correo).
+        UserDto saved = service.save(user);
+    
+        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+    
 
- 
+    
 
     
     @PutMapping("/{id}")
@@ -134,17 +139,16 @@ private TrainerService trainerService;
     
     
 
-@DeleteMapping("/{id}")
-public ResponseEntity<?> remove(@PathVariable Long id) {
-    Optional<UserDto> o = service.findById(id);
-
-    if (o.isPresent()) {
-        service.remove(id);
-        return ResponseEntity.noContent().build(); // 204
-    }
-
-    return ResponseEntity.notFound().build();
-}
+                @DeleteMapping("/{id}")
+                public ResponseEntity<?> remove(@PathVariable Long id) {
+                    Optional<UserDto> o = service.findById(id);
+                    if (o.isPresent()) {
+                        service.remove(id);
+                        return ResponseEntity.noContent().build();
+                    }
+                    return ResponseEntity.notFound().build();
+                }
+    
 
     private ResponseEntity<?> validation(BindingResult result) {
         Map<String, String> errors = new HashMap<>();

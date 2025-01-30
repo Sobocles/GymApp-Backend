@@ -20,6 +20,15 @@ public class PaymentDTO {
     private String paymentType; 
     private String paymentMethod;
     private List<ProductDto> products;
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public Long getUserId() {
         return userId;

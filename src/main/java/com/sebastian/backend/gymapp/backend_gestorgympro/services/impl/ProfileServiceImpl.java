@@ -37,7 +37,7 @@ public class ProfileServiceImpl implements ProfileService {
 
       @Override
     public UserDto updateProfile(UserRequest userRequest, MultipartFile file, String currentEmail) {
-        Optional<User> optionalUser = userRepository.findByEmail(currentEmail);
+        Optional<User> optionalUser = userRepository.findByEmailAndActiveTrue(currentEmail);
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("Usuario no encontrado");
         }

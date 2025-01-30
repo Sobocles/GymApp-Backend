@@ -56,6 +56,7 @@ public class PlanService {
         
         newPlanVersion.setVersionNumber(oldPlan.getVersionNumber() + 1);
         newPlanVersion.setActive(true);
+        newPlanVersion.setDurationMonths(planDetails.getDurationMonths());
     
         return planRepository.save(newPlanVersion);
     }

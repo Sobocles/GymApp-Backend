@@ -108,24 +108,23 @@ public class PlanTrainerPaymentService {
         BigDecimal total = BigDecimal.ZERO;
     
         if (plan != null) {
-            // Si 'price' ya es el total del año/trimestre/mes,
-            // NO multiplicamos por plan.getDurationMonths().
             BigDecimal planBasePrice = plan.getPrice();
-    
-            // Aplicas el descuento (si existe)
+            
+            // Aplicar descuento si existe
             if (plan.getDiscount() != null && plan.getDiscount() > 0) {
                 BigDecimal discountFactor = BigDecimal.valueOf(plan.getDiscount())
                                                       .divide(BigDecimal.valueOf(100));
-                BigDecimal discountAmount = planBasePrice.multiply(discountFactor);
-                planBasePrice = planBasePrice.subtract(discountAmount);
-    
-                if (planBasePrice.compareTo(BigDecimal.ZERO) < 0) {
-                    planBasePrice = BigDecimal.ZERO;
-                }
+                planBasePrice = planBasePrice.subtract(planBasePrice.multiply(discountFactor));
             }
-    
+            
+            // Multiplicar por la duración si es necesario
+            if (plan.getDurationMonths() != null && plan.getDurationMonths() > 0) {
+                planBasePrice = planBasePrice.multiply(BigDecimal.valueOf(plan.getDurationMonths()));
+            }
+            
             total = total.add(planBasePrice);
         }
+        
     
         if (trainer != null) {
             // Ahora: ¿quieres cobrar todo el año de entrenador?

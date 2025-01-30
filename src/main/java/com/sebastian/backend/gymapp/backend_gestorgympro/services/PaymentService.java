@@ -91,7 +91,7 @@ public class PaymentService {
     public Optional<Payment> getPaymentByMercadoPagoId(String mercadoPagoId) {
         return paymentRepository.findByMercadoPagoId(mercadoPagoId);
     }
-
+    
     public Optional<Payment> getPaymentByExternalReference(String externalReference) {
         return paymentRepository.findByExternalReference(externalReference);
     }
@@ -207,7 +207,86 @@ public class PaymentService {
             return paymentRepository.findApprovedPlanPaymentsPage(pageable);
         }
 
+        public PaymentDTO getPaymentDetails(Long paymentId) {
+            // 1. Buscar el Payment en la base de datos
+            Payment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("No se encontró el Payment con id: " + paymentId));
+    
+            // 2. Construir el DTO
+            PaymentDTO dto = new PaymentDTO();
+            dto.setId(payment.getId());
+            dto.setUserId(payment.getUser().getId());
+            dto.setUsername(payment.getUser().getUsername());
+            dto.setPaymentType(payment.getPaymentType());               // "plan", "producto", "plan+trainer", etc.
+            dto.setStatus(payment.getStatus());                         // status actual
+            dto.setPaymentMethod(payment.getPaymentMethod());
+            dto.setTransactionAmount(payment.getTransactionAmount());
+            dto.setPaymentDate(payment.getPaymentDate());
+    
+            // Si es un plan, setear planName y fechas de suscripción (si existen)
+            if (payment.isPlanIncluded() && payment.getSubscription() != null) {
+                dto.setPlanName(payment.getPlan().getName());
+                dto.setSubscriptionStartDate(payment.getSubscription().getStartDate());
+                dto.setSubscriptionEndDate(payment.getSubscription().getEndDate());
+            }
+    
+            // Si incluye entrenador, podemos poner campos para trainer
+            // (Podrías extender tu PaymentDTO para mostrar trainerName, etc.)
+            // if (payment.isTrainerIncluded()) { ... }
+    
+            // Si hay productos (OrderDetails)
+            List<OrderDetail> details = orderDetailRepository.findByPaymentId(payment.getId());
+            List<ProductDto> productDtos = details.stream().map(detail -> {
+                ProductDto prodDto = new ProductDto();
+                prodDto.setName(detail.getProduct().getName());
+                prodDto.setPrice(detail.getProduct().getPrice().doubleValue());
+                prodDto.setDescription(detail.getProduct().getDescription());
+                prodDto.setBrand(detail.getProduct().getBrand());
+                prodDto.setFlavor(detail.getProduct().getFlavor());
+                prodDto.setImageUrl(detail.getProduct().getImageUrl());
+                // También puedes incluir la cantidad comprada, etc.:
+                // prodDto.setQuantity(detail.getQuantity());
+                return prodDto;
+            }).toList();
+            dto.setProducts(productDtos);
+    
+            // Retornar el DTO
+            return dto;
+        }
 
+        public PaymentDTO buildPaymentDto(Payment payment) {
+            PaymentDTO dto = new PaymentDTO();
+            dto.setId(payment.getId());
+            dto.setUserId(payment.getUser().getId());
+            dto.setUsername(payment.getUser().getUsername());
+            dto.setPaymentType(payment.getPaymentType());
+            dto.setStatus(payment.getStatus());
+            dto.setPaymentMethod(payment.getPaymentMethod());
+            dto.setTransactionAmount(payment.getTransactionAmount());
+            dto.setPaymentDate(payment.getPaymentDate());
+        
+            if (payment.isPlanIncluded() && payment.getSubscription() != null) {
+                dto.setPlanName(payment.getPlan().getName());
+                dto.setSubscriptionStartDate(payment.getSubscription().getStartDate());
+                dto.setSubscriptionEndDate(payment.getSubscription().getEndDate());
+            }
+        
+            List<OrderDetail> details = orderDetailRepository.findByPaymentId(payment.getId());
+            List<ProductDto> productDtos = details.stream().map(detail -> {
+                ProductDto prodDto = new ProductDto();
+                prodDto.setName(detail.getProduct().getName());
+                prodDto.setPrice(detail.getProduct().getPrice().doubleValue());
+                prodDto.setDescription(detail.getProduct().getDescription());
+                prodDto.setBrand(detail.getProduct().getBrand());
+                prodDto.setFlavor(detail.getProduct().getFlavor());
+                prodDto.setImageUrl(detail.getProduct().getImageUrl());
+                return prodDto;
+            }).toList();
+            dto.setProducts(productDtos);
+        
+            return dto;
+        }
+        
     
 }
 

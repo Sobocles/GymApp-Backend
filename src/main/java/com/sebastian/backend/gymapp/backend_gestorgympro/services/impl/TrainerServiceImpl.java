@@ -222,7 +222,7 @@ public List<UserDto> getAssignedClients(Long trainerId) {
     @Override
 @Transactional
 public void updateTrainerDetails(String email, TrainerUpdateRequest request) {
-    User user = userRepository.findByEmail(email)
+    User user = userRepository.findByEmailAndActiveTrue(email)
         .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
     // Verificar si existe un registro de PersonalTrainer para este usuario

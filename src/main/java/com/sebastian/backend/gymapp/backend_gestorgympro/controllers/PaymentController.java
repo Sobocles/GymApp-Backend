@@ -9,6 +9,7 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPersonalTrainerDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPlanDTO;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentProductDTO;
+import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.OrderDetailRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentNotificationService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PaymentReportService;
@@ -56,6 +57,8 @@ public class PaymentController {
 
     @Autowired
     private PaymentService paymentService;
+
+    
 
   
 
@@ -175,7 +178,19 @@ public class PaymentController {
             return ResponseEntity.ok(paymentsPage);
         }
 
-    
+        @GetMapping("/details/mp/{mpPaymentId}")
+        public ResponseEntity<PaymentDTO> getPaymentDetailsByMPId(@PathVariable String mpPaymentId) {
+            // Buscar el pago basado en el ID de Mercado Pago
+            Payment payment = paymentService.getPaymentByMercadoPagoId(mpPaymentId)
+                    .orElseThrow(() -> new RuntimeException("No se encontró Payment con MP ID: " + mpPaymentId));
+        
+            // Construcción del DTO
+            PaymentDTO dto = paymentService.buildPaymentDto(payment);
+            return ResponseEntity.ok(dto);
+        }
+        
+        
+        
     
     
 

@@ -37,7 +37,6 @@ public class User implements IUser  {
     @Column(unique = true)
     private String username;
 
-    @NotBlank
     private String password;
 
     @NotEmpty
@@ -55,23 +54,51 @@ public class User implements IUser  {
 
     private List<Role> roles;
 
-      // Nueva relación uno a muchos con Payment
+ 
     @OneToMany(mappedBy = "user")
      private List<Payment> payments;
 
-      // Nueva relación uno a muchos con Subscription
+
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Subscription> subscriptions;
 
-    @Transient //un campo que es de la clase, que no se mapea a la base de datos como una columna
+    @Transient 
     private boolean admin;
 
     @Transient
-    private boolean trainer; // Agregar este campo
+    private boolean trainer; 
 
     @Column(name = "profile_image_url", nullable = true)
     private String profileImageUrl;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
+    public List<Subscription> getSubscriptions() {
+        return subscriptions;
+    }
+
+    public void setSubscriptions(List<Subscription> subscriptions) {
+        this.subscriptions = subscriptions;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public String getProfileImageUrl() {
         return profileImageUrl;

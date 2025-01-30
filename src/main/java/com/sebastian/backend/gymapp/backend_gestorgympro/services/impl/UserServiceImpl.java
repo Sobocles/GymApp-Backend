@@ -1,5 +1,4 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.services.impl;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,12 +23,13 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTr
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.RoleRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.UserRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.CloudinaryService;
+import com.sebastian.backend.gymapp.backend_gestorgympro.services.EmailService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.UserService;
 
-import jakarta.persistence.EntityNotFoundException;
+
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+
 
 
     @Service
@@ -50,16 +49,24 @@ import org.springframework.web.multipart.MultipartFile;
         private PersonalTrainerRepository personalTrainerRepository;
 
         @Autowired
-        private PasswordEncoder passwordEncoder;;
+        private PasswordEncoder passwordEncoder;
+
+        @Autowired
+        private EmailService emailService;
 
         @Override
         @Transactional(readOnly = true)
         public List<UserDto> findAll() {
-            List<User> users = (List<User>) repository.findAll();
-            return users
-                .stream()
-                .map(u -> DtoMapperUser.builder().setUser(u).build())
-                .collect(Collectors.toList());
+            // En vez de findAll(), usamos findAllActive sin paginación.
+            // Si realmente necesitas un Page en la interfaz, omite este y 
+            // usa la versión paginada. Si no, haz una versión List en el repositorio.
+            // Por ejemplo:
+            Page<User> page = repository.findAllActive(Pageable.unpaged());
+            List<User> users = page.getContent();
+        
+            return users.stream()
+                        .map(u -> DtoMapperUser.builder().setUser(u).build())
+                        .collect(Collectors.toList());
         }
 
 /* 
@@ -83,14 +90,16 @@ import org.springframework.web.multipart.MultipartFile;
         @Override
         @Transactional(readOnly = true)
         public Page<UserDto> findAll(Pageable pageable) {
-            Page<User> usersPage = repository.findAll(pageable);
+            // Aquí usamos findAllActive(pageable)
+            Page<User> usersPage = repository.findAllActive(pageable);
             return usersPage.map(u -> DtoMapperUser.builder().setUser(u).build());
         }
 
         @Override
         @Transactional(readOnly = true)
         public Page<UserDto> findByUsernameContaining(String search, Pageable pageable) {
-            Page<User> usersPage = repository.findByUsernameContainingIgnoreCase(search, pageable);
+            // Reemplazamos por la versión que filtra activos:
+            Page<User> usersPage = repository.findByUsernameContainingIgnoreCaseAndActiveTrue(search, pageable);
             return usersPage.map(u -> DtoMapperUser.builder().setUser(u).build());
         }
 
@@ -109,23 +118,62 @@ import org.springframework.web.multipart.MultipartFile;
         @Override
         @Transactional
         public UserDto save(User user) {
-  
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
         
+            // 1) Generar/encriptar contraseña (si no lo hiciste antes). 
+            //    OJO: Aquí se asume que 'user.getPassword()' viene con la contraseña generada.
+            String rawPassword = user.getPassword();          // Contraseña generada sin encriptar
+            String encrypted = passwordEncoder.encode(rawPassword);
+            user.setPassword(encrypted);
+        
+            // 2) Roles, etc. (código que ya tienes)
             List<Role> roles = getRoles(user);
-        
             user.setRoles(roles);
         
-            return DtoMapperUser.builder().setUser(repository.save(user)).build();
+            // 3) Guardar en base de datos
+            User saved = repository.save(user);
+        
+            // 4) Enviar email con la contraseña en texto plano
+            try {
+                String subject = "¡Te han creado una cuenta en GymApp!";
+                String body = "Hola " + saved.getUsername() + 
+                              ", tu cuenta ha sido creada. " +
+                              "Tu contraseña temporal es: " + rawPassword + 
+                              "\n\nPor favor, inicia sesión y cámbiala lo antes posible.";
+                emailService.sendEmail(saved.getEmail(), subject, body);
+            } catch(Exception e) {
+                // Manejo de errores si falla el envío de correo
+                e.printStackTrace();
+            }
+        
+            // 5) Retornar el DTO
+            return DtoMapperUser.builder().setUser(saved).build();
         }
+        
         
         
         
 
+        @Transactional
         @Override
         public void remove(Long id) {
-            repository.deleteById(id);
+            User user = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con ID: " + id));
+            
+            // Marcar como inactivo en lugar de borrarlo
+            user.setActive(false);
+            repository.save(user);
+        
+            // (Opcional) si el usuario es trainer, podrías marcar su disponibilidad en false
+            // para que no aparezca en “Entrenadores disponibles”:
+            Optional<PersonalTrainer> ptOpt = personalTrainerRepository.findByUserId(id);
+            ptOpt.ifPresent(pt -> {
+                pt.setAvailability(false);
+                personalTrainerRepository.save(pt);
+            });
+            
+   
         }
+        
 
         @Override
         @Transactional
@@ -183,11 +231,12 @@ private List<Role> getRoles(IUser user) {
 }
 
 
-@Override
-@Transactional(readOnly = true)
-public Optional<User> findByEmail(String email) {
-    return repository.findByEmail(email);
-}
+        @Override
+        @Transactional(readOnly = true)
+        public Optional<User> findByEmail(String email) {
+            // También llamamos la nueva versión "only active"
+            return repository.findByEmailAndActiveTrue(email);
+        }
 
 
         

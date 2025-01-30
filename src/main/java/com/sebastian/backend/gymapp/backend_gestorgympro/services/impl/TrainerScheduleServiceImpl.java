@@ -117,7 +117,7 @@ public class TrainerScheduleServiceImpl implements TrainerScheduleService {
         //    Supongamos ya comprobaste que el slot está libre, etc.
         
         // 2) Obtener el usuario y el entrenador reales
-        User user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmailAndActiveTrue(userEmail)
             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     
         PersonalTrainer trainer = personalTrainerRepository.findById(trainerId)

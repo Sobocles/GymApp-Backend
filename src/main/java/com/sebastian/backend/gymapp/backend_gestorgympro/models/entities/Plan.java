@@ -59,7 +59,8 @@ public class Plan {
         @Column(name = "discount_reason", nullable = true)
         private String discountReason; 
 
-        private Integer durationMonths; 
+        @Column(name = "duration_months")
+        private Integer durationMonths;
 
     public Integer getDurationMonths() {
             return durationMonths;

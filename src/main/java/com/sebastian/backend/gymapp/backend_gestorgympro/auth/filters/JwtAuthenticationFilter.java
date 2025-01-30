@@ -87,7 +87,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         claims.put("email", email);
     
         // Obtener el username real desde el repositorio
-        Optional<User> userOpt = userRepository.findByEmail(email);
+        Optional<User> userOpt = userRepository.findByEmailAndActiveTrue(email);
         Long userId = userOpt.map(User::getId).orElse(null);
         String username = userOpt.map(User::getUsername).orElse("");
         
