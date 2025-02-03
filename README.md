@@ -91,8 +91,39 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 - Build optimizado con Vite
 
 ### **Backend**  
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white)  
-![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?logo=springsecurity&logoColor=white)  
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.4-6DB33F?logo=springboot&logoColor=white)
+![Java](https://img.shields.io/badge/Java-23-ED8B00?logo=openjdk&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?logo=springsecurity&logoColor=white)
+
+**Core:**
+- Spring Boot 3.3.4 + Java 23
+- Spring Data JPA (Hibernate)
+- Validación de datos con Bean Validation
+- Hot reload con Spring DevTools
+
+**Seguridad:**
+- Autenticación JWT (jjwt 0.11.2)
+- Spring Security 6.1
+- CORS configurado
+- Protección CSRF
+
+**Integraciones:**
+- Cloudinary SDK 2.0 (gestión de imágenes)
+- Mercado Pago SDK 2.1.29 (pasarela de pagos)
+- Spring Mail (notificaciones email)
+- MySQL Connector/J 8.0
+
+**Herramientas:**
+- Configuración con dotenv-java 2.2.4
+- Monitorización con Spring Actuator
+- Testing con Spring Boot Test
+- Build con Maven Wrapper
+
+**Patrones:**
+- Arquitectura RESTful
+- Inyección de dependencias
+- Transacciones ACID
+- DTOs para transferencia de datos
 
 ### **Integraciones**  
 ![Mercado Pago](https://img.shields.io/badge/Mercado_Pago-00B1EA?logo=mercadopago&logoColor=white)  
