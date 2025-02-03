@@ -11,6 +11,8 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTr
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerSubscriptionRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PersonalTrainerSubscriptionService;
 
+import jakarta.persistence.EntityNotFoundException;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -61,5 +63,19 @@ public Optional<PersonalTrainerSubscription> findActiveSubscriptionForUser(Long 
             .filter(PersonalTrainerSubscription::getActive)
             .findFirst();
 }
+    @Override
+    @Transactional
+    public void reassignSubscriptions(Long oldTrainerId, Long newTrainerId) {
+        PersonalTrainer newTrainer = personalTrainerRepository.findById(newTrainerId)
+            .orElseThrow(() -> new EntityNotFoundException("Entrenador no encontrado"));
+        
+        List<PersonalTrainerSubscription> subscriptions = personalTrainerSubscriptionRepository
+            .findByPersonalTrainerId(oldTrainerId);
+        
+        subscriptions.forEach(sub -> {
+            sub.setPersonalTrainer(newTrainer);
+            personalTrainerSubscriptionRepository.save(sub);
+        });
+    }
 
 }

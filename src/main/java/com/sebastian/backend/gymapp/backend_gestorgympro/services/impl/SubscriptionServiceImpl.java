@@ -11,9 +11,13 @@ import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Payment
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.PersonalTrainer;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Plan;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.entities.Subscription;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PersonalTrainerRepository;
+import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.PlanRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.repositories.SubscriptionRepository;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.PlanService;
 import com.sebastian.backend.gymapp.backend_gestorgympro.services.SubscriptionService;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class SubscriptionServiceImpl implements SubscriptionService{
@@ -22,7 +26,14 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     private SubscriptionRepository subscriptionRepository;
 
     @Autowired
-    private PlanService plan;
+    private PlanService planService;
+    
+
+    @Autowired
+    private PlanRepository planRepository;
+
+    @Autowired
+    private PersonalTrainerRepository personalTrainerRepository;
 
     public Subscription createSubscription(Subscription subscription) {
         return subscriptionRepository.save(subscription);
@@ -36,22 +47,32 @@ public class SubscriptionServiceImpl implements SubscriptionService{
     @Transactional
     public Subscription createSubscriptionForPayment(Payment payment) {
         Subscription subscription = new Subscription();
+    
         subscription.setUser(payment.getUser());
         subscription.setPlan(payment.getPlan());
         subscription.setStartDate(LocalDate.now());
-        subscription.setEndDate(LocalDate.now().plusYears(1)); // Por ejemplo, un año
-        subscription.setActive(true);
-        subscription.setPayment(payment); // Establecer el pago asociado
-        // Ejemplo dentro de tu PaymentNotificationService o SubscriptionService
-        Plan plan = payment.getPlan();
-        if (plan != null) {
-            subscription.setPlanNameSnapshot(plan.getName());
-            subscription.setPlanPriceSnapshot(plan.getPrice());
-            subscription.setPlanVersionSnapshot(plan.getVersionNumber());
+    
+        // Obtenemos el plan del Payment
+        Plan paymentPlan = payment.getPlan();
+        if (paymentPlan != null && paymentPlan.getDurationMonths() != null && paymentPlan.getDurationMonths() > 0) {
+            subscription.setEndDate(LocalDate.now().plusMonths(paymentPlan.getDurationMonths()));
+        } else {
+            // Valor por defecto: 1 año
+            subscription.setEndDate(LocalDate.now().plusYears(1));
         }
-
+        
+        subscription.setActive(true);
+        subscription.setPayment(payment);
+    
+        if (paymentPlan != null) {
+            subscription.setPlanNameSnapshot(paymentPlan.getName());
+            subscription.setPlanPriceSnapshot(paymentPlan.getPrice());
+            subscription.setPlanVersionSnapshot(paymentPlan.getVersionNumber());
+        }
+    
         return subscriptionRepository.save(subscription);
     }
+    
 
     
     @Override
@@ -87,6 +108,19 @@ public boolean hasAnyActiveSubscription(Long userId) {
     return subscriptions.stream().anyMatch(Subscription::getActive);
 }
 
-
+    @Override
+    @Transactional
+    public void reassignPlanTrainers(Long oldTrainerId, Long newTrainerId) {
+        PersonalTrainer newTrainer = personalTrainerRepository.findById(newTrainerId)
+            .orElseThrow(() -> new EntityNotFoundException("Entrenador no encontrado"));
+        
+        List<Plan> plans = planRepository.findAllByIncludedTrainersId(oldTrainerId);
+        
+        plans.forEach(plan -> {
+            plan.getIncludedTrainers().removeIf(pt -> pt.getId().equals(oldTrainerId));
+            plan.getIncludedTrainers().add(newTrainer);
+            planRepository.save(plan);
+        });
+    }
 
 }

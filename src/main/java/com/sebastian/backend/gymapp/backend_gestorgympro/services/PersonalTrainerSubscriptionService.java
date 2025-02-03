@@ -17,4 +17,7 @@ public interface PersonalTrainerSubscriptionService {
     boolean hasActiveTrainerSubscription(Long userId, Long trainerId);
 
     Optional<PersonalTrainerSubscription> findActiveSubscriptionForUser(Long userId);
+
+
+    void reassignSubscriptions(Long oldTrainerId, Long newTrainerId);
 }

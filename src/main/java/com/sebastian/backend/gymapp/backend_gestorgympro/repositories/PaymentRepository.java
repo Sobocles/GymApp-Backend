@@ -84,66 +84,69 @@ BigDecimal getTotalApprovedPlanRevenue();
         List<PaymentPersonalTrainerDTO> findApprovedPersonalTrainerPayments();
 
 
-        @Query(
-              value = """
-                 SELECT new com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPlanDTO(
-                   p.id,
-                   p.plan.id,
-                   u.username,
-                   p.transactionAmount,
-                   p.status,
-                   p.paymentMethod,
-                   p.paymentDate,
-                   s.startDate,
-                   s.endDate,
-                   pts.startDate,
-                   pts.endDate,
-                   pt.user.username
-                 )
-                 FROM Payment p
-                 JOIN p.user u
-                 LEFT JOIN p.subscription s
-                 LEFT JOIN PersonalTrainerSubscription pts ON pts.payment.id = p.id
-                 LEFT JOIN pts.personalTrainer pt
-                 WHERE p.status = 'approved'
-                   AND p.planIncluded = true
-              """,
-              countQuery = """
-                 SELECT COUNT(p)
-                 FROM Payment p
-                 WHERE p.status = 'approved'
-                   AND p.planIncluded = true
-              """
-          )
-          Page<PaymentPlanDTO> findApprovedPlanPaymentsPage(Pageable pageable);
+        @Query(value = """
+          SELECT new com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentPlanDTO(
+             p.id,
+             p.plan.id,
+             u.username,
+             p.transactionAmount,
+             p.status,
+             p.paymentMethod,
+             p.paymentDate,
+             s.startDate,
+             s.endDate,
+             pts.startDate,
+             pts.endDate,
+             pt.user.username
+           )
+           FROM Payment p
+           JOIN p.user u
+           LEFT JOIN p.subscription s
+           LEFT JOIN PersonalTrainerSubscription pts ON pts.payment.id = p.id
+           LEFT JOIN pts.personalTrainer pt
+           WHERE p.status = 'approved'
+             AND p.planIncluded = true
+             AND (:search = '' OR LOWER(u.username) LIKE CONCAT('%', LOWER(:search), '%'))
+      """,
+      countQuery = """
+          SELECT COUNT(p)
+          FROM Payment p
+          WHERE p.status = 'approved'
+            AND p.planIncluded = true
+            AND (:search = '' OR LOWER(p.user.username) LIKE CONCAT('%', LOWER(:search), '%'))
+      """)
+      Page<PaymentPlanDTO> findApprovedPlanPaymentsPage(Pageable pageable, @Param("search") String search);
           
 
-              @Query(value = """
-                     SELECT new com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentProductDTO(
-                     p.id,
-                     u.username,
-                     p.paymentMethod,
-                     p.paymentDate,
-                     p.transactionAmount,
-                     pr.name
-                     )
-                     FROM Payment p
-                     JOIN p.user u
-                     JOIN p.orderDetails od
-                     JOIN od.product pr
-                     WHERE p.status = 'approved'
-                     AND p.planIncluded = false
-                     AND p.trainerIncluded = false
-              """,
-              countQuery = """
-                     SELECT COUNT(p)
-                     FROM Payment p
-                     WHERE p.status = 'approved'
-                     AND p.planIncluded = false
-                     AND p.trainerIncluded = false
-              """
-              )
-              Page<PaymentProductDTO> findApprovedProductPaymentsPage(Pageable pageable);
+          @Query(value = """
+            SELECT new com.sebastian.backend.gymapp.backend_gestorgympro.models.dto.PaymentProductDTO(
+              p.id,
+              u.username,
+              p.paymentMethod,
+              p.paymentDate,
+              p.transactionAmount,
+              pr.name
+            )
+            FROM Payment p
+            JOIN p.user u
+            JOIN p.orderDetails od
+            JOIN od.product pr
+            WHERE p.status = 'approved'
+            AND p.planIncluded = false
+            AND p.trainerIncluded = false
+            AND (:search = '' OR LOWER(u.username) LIKE CONCAT('%', LOWER(:search), '%'))
+      """,
+      countQuery = """
+            SELECT COUNT(p)
+            FROM Payment p
+            WHERE p.status = 'approved'
+            AND p.planIncluded = false
+            AND p.trainerIncluded = false
+            AND (:search = '' OR LOWER(p.user.username) LIKE CONCAT('%', LOWER(:search), '%'))
+      """
+      )
+      Page<PaymentProductDTO> findApprovedProductPaymentsPage(Pageable pageable, @Param("search") String search);
+      
 
 }
 

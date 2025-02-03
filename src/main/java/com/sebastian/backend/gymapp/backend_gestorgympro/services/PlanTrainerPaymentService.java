@@ -60,13 +60,21 @@ public class PlanTrainerPaymentService {
     Long trainerId,
     boolean onlyTrainer) throws MPException {
         User user = getUserOrThrow(userEmail);
+
         validatePlanTrainerCombination(onlyTrainer, planId);
+
         Plan plan = retrievePlanIfPresent(planId);
+
         PersonalTrainer trainer = retrieveTrainerIfPresent(trainerId);
+
         BigDecimal totalPrice = calculateTotalPrice(plan, trainer);
+
         Payment payment = buildPayment(user, plan, trainer, totalPrice);
+
         Preference preference = createPreferenceInMercadoPago(payment);
+
         sendConfirmationEmail(user, plan, trainer, totalPrice);
+        
         return preference;
 
         

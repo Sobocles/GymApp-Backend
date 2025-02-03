@@ -71,7 +71,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/users", "/users/page/{page}").permitAll()
                         .requestMatchers("/login").permitAll()
                         .requestMatchers("/public/**").permitAll()
-                        
+                        .requestMatchers(HttpMethod.GET, "/api/gym-info").permitAll() // Agrega esta línea
 
                         .requestMatchers(HttpMethod.GET, "/plans/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/carousel/images").permitAll()

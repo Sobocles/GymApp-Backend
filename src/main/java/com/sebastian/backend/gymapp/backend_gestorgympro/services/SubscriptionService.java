@@ -40,4 +40,6 @@ public interface SubscriptionService {
     boolean hasActivePlanWithTrainer(Long userId, Long trainerId);
 
     boolean hasAnyActiveSubscription(Long userId);
+
+    void reassignPlanTrainers(Long oldTrainerId, Long newTrainerId);
 }   

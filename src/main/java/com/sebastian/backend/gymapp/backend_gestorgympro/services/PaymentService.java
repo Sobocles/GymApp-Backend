@@ -199,13 +199,14 @@ public class PaymentService {
 
     // PaymentService.java
 
-        public Page<PaymentProductDTO> getApprovedProductPaymentsPage(Pageable pageable) {
-            return paymentRepository.findApprovedProductPaymentsPage(pageable);
-        }
+    public Page<PaymentProductDTO> getApprovedProductPaymentsPage(Pageable pageable, String search) {
+        return paymentRepository.findApprovedProductPaymentsPage(pageable, search);
+    }
+    
 
-        public Page<PaymentPlanDTO> getApprovedPlanPaymentsPage(Pageable pageable) {
-            return paymentRepository.findApprovedPlanPaymentsPage(pageable);
-        }
+    public Page<PaymentPlanDTO> getApprovedPlanPaymentsPage(Pageable pageable, String search) {
+        return paymentRepository.findApprovedPlanPaymentsPage(pageable, search);
+    }
 
         public PaymentDTO getPaymentDetails(Long paymentId) {
             // 1. Buscar el Payment en la base de datos

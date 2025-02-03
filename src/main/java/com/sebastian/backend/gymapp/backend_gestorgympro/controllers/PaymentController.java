@@ -155,28 +155,26 @@ public class PaymentController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<PaymentPlanDTO>> getApprovedPlanPaymentsPage(
         @PathVariable int page,
-        @RequestParam(defaultValue = "6") int size
-    ) {
+        @RequestParam(defaultValue = "6") int size,
+        @RequestParam(defaultValue = "") String search) { // Nuevo parámetro de búsqueda
+        
         Pageable pageable = PageRequest.of(page, size);
-    
-        Page<PaymentPlanDTO> paymentsPage = paymentService.getApprovedPlanPaymentsPage(pageable);
-    
+        Page<PaymentPlanDTO> paymentsPage = paymentService.getApprovedPlanPaymentsPage(pageable, search);
         return ResponseEntity.ok(paymentsPage);
     }
 
-        @GetMapping("/approved_products/page/{page}")
-        @PreAuthorize("hasRole('ADMIN')")
-        public ResponseEntity<Page<PaymentProductDTO>> getApprovedProductPaymentsPage(
-            @PathVariable int page,
-            @RequestParam(defaultValue = "6") int size
-        ) {
-            // Usamos PageRequest para crear la paginación
-            Pageable pageable = PageRequest.of(page, size);
-            
-            Page<PaymentProductDTO> paymentsPage = paymentService.getApprovedProductPaymentsPage(pageable);
-
-            return ResponseEntity.ok(paymentsPage);
-        }
+    @GetMapping("/approved_products/page/{page}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Page<PaymentProductDTO>> getApprovedProductPaymentsPage(
+        @PathVariable int page,
+        @RequestParam(defaultValue = "6") int size,
+        @RequestParam(defaultValue = "") String search
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<PaymentProductDTO> paymentsPage = paymentService.getApprovedProductPaymentsPage(pageable, search);
+        return ResponseEntity.ok(paymentsPage);
+    }
+    
 
         @GetMapping("/details/mp/{mpPaymentId}")
         public ResponseEntity<PaymentDTO> getPaymentDetailsByMPId(@PathVariable String mpPaymentId) {

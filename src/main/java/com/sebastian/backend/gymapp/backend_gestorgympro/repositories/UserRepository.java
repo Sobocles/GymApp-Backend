@@ -29,6 +29,8 @@ public interface UserRepository
         boolean existsByEmail(String email);
 
         boolean existsByUsername(String username);
+
+       
         
           // Para búsquedas por username (solo activos):
     @Query("""

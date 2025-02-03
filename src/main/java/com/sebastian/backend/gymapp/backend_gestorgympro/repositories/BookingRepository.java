@@ -1,6 +1,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -51,5 +52,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                                                  @Param("trainerId") Long trainerId,
                                                                                                  @Param("endDate") LocalDateTime endDate);
                                               
-
+           @Modifying
+    @Query("UPDATE Booking b SET b.trainer.id = :newTrainerId WHERE b.trainer.id = :oldTrainerId")
+    void updateTrainerForBookings(@Param("oldTrainerId") Long oldTrainerId, 
+                                 @Param("newTrainerId") Long newTrainerId);
 }
