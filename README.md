@@ -60,9 +60,35 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 
 ## 🛠️ Tecnologías  
 ### **Frontend**  
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)  
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)  
-![Material-UI](https://img.shields.io/badge/Material_UI-0081CB?logo=mui&logoColor=white)  
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-CA4245?logo=reactrouter&logoColor=white)
+
+**Core:**
+- React 18 + Vite 5 (TypeScript)
+- Gestión de estado con Redux Toolkit 2.2
+- Enrutamiento con React Router 6.26
+
+**UI/Componentes:**
+- Material UI 6.2 + X Date Pickers 7.23
+- FontAwesome 6.6 (iconos)
+- Swiper 11.2 (carruseles interactivos)
+- React Big Calendar 1.16 (gestión horarios)
+
+**Formularios y Validación:**
+- Formik 2.4 + Yup 1.4
+- Validación de esquemas avanzada
+
+**Utilidades:**
+- Axios 1.7 (peticiones HTTP)
+- SweetAlert2 11.14 (notificaciones)
+- date-fns 2.29 (manejo de fechas)
+
+**Dev Tools:**
+- ESLint 9.11 + Typescript 5.5
+- Hot Module Replacement (HMR)
+- Build optimizado con Vite
 
 ### **Backend**  
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?logo=springboot&logoColor=white)  
