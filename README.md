@@ -71,6 +71,7 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 ### **Integraciones**  
 ![Mercado Pago](https://img.shields.io/badge/Mercado_Pago-00B1EA?logo=mercadopago&logoColor=white)  
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white)  
+![Spring Mail](https://img.shields.io/badge/Spring_Mail-6DB33F?logo=spring&logoColor=white)  
 
 ---
 
