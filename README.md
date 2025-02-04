@@ -138,9 +138,12 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
    Configuración del Backend (Spring Boot)
 
 # 1. Construir proyecto y descargar dependencias
-mvn clean install -DskipTests
+```bash
+    mvn clean install -DskipTests
 
 # 2. Ejecutar la aplicación Spring Boot
+
+```bash
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 El servidor API se iniciará en: http://localhost:8080
