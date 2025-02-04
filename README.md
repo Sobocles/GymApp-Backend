@@ -130,21 +130,18 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white)  
 ![Spring Mail](https://img.shields.io/badge/Spring_Mail-6DB33F?logo=spring&logoColor=white)  
 
-## ⚙️ Instalación  
+# ⚙️ Instalación  
 1. Clona el repositorio:  
    ```bash
    git clone https://github.com/Sobocles/GymApp.git
-
-   Configuración del Backend (Spring Boot)
-
-# 1. Construir proyecto y descargar dependencias
+   
+2. Construir proyecto y descargar dependencias
 ```bash
     mvn clean install -DskipTests
 
-# 2. Ejecutar la aplicación Spring Boot
-
+3. Ejecutar la aplicación Spring Boot
 ```bash
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 El servidor API se iniciará en: http://localhost:8080
 Configuración de Ngrok (Para desarrollo local)
