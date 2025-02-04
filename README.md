@@ -134,7 +134,7 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 1. Clona el repositorio:  
    ```bash
    git clone https://github.com/Sobocles/GymApp.git
-   
+   ```
 2. Construir proyecto y descargar dependencias
   ```bash
     mvn clean install -DskipTest
