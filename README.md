@@ -138,15 +138,15 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 2. Construir proyecto y descargar dependencias
   ```bash
     mvn clean install -DskipTest
-```
+  ```
 
 3. Ejecutar la aplicación Spring Boot
   ```bash
    mvn spring-boot:run -Dspring-boot.run.profiles=dev
-```
+  ```
 El servidor API se iniciará en
   ```bash 
-  http://localhost:8080 
+   http://localhost:8080 
   ```
 Configuración de Ngrok (Para desarrollo local)
 
