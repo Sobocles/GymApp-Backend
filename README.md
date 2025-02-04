@@ -130,9 +130,38 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?logo=cloudinary&logoColor=white)  
 ![Spring Mail](https://img.shields.io/badge/Spring_Mail-6DB33F?logo=spring&logoColor=white)  
 
----
-
 ## ⚙️ Instalación  
 1. Clona el repositorio:  
    ```bash
-   git clone https://github.com/tu-usuario/gym-pro.git
+   git clone https://github.com/Sobocles/GymApp.git
+
+   Configuración del Backend (Spring Boot)
+bash
+Copy
+
+# 1. Construir proyecto y descargar dependencias
+mvn clean install -DskipTests
+
+# 2. Ejecutar la aplicación Spring Boot
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+El servidor API se iniciará en: http://localhost:8080
+Configuración de Ngrok (Para desarrollo local)
+
+Descargar e instalar ngrok https://download.ngrok.com/downloads/windows
+
+Autenticar: ./ngrok config add-authtoken <TU_TOKEN>
+
+ Exponer el puerto del backen: ./ngrok http 8080
+
+ Actualizar application.properties con la URL HTTPS generada: mercadopago.base-url=https://{subdominio-ngrok}.ngrok-free.app
+
+Variables de Entorno Clave
+
+Crear archivo .env en el backend con:
+properties
+Copy
+
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
+SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
