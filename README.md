@@ -135,16 +135,16 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
    ```bash
    git clone https://github.com/Sobocles/GymApp.git
    ```
-2. Construir proyecto y descargar dependencias
+2. Construir proyecto y descargar dependencias:
   ```bash
     mvn clean install -DskipTest
   ```
 
-3. Ejecutar la aplicación Spring Boot
+3. Ejecutar la aplicación Spring Boot:
   ```bash
    mvn spring-boot:run -Dspring-boot.run.profiles=dev
   ```
-El servidor API se iniciará en
+El servidor API se iniciará en:
   ```bash 
    http://localhost:8080 
   ```
