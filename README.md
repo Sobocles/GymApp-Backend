@@ -136,18 +136,18 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
    git clone https://github.com/Sobocles/GymApp.git
    
 2. Construir proyecto y descargar dependencias
-```bash
+  ```bash
     mvn clean install -DskipTest
 ```
 
 3. Ejecutar la aplicación Spring Boot
-```bash
+  ```bash
    mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 El servidor API se iniciará en
-```bash 
+  ```bash 
   http://localhost:8080 
-```
+  ```
 Configuración de Ngrok (Para desarrollo local)
 
 Descargar e instalar ngrok https://download.ngrok.com/downloads/windows
@@ -155,9 +155,9 @@ Descargar e instalar ngrok https://download.ngrok.com/downloads/windows
 Autenticar: ./ngrok config add-authtoken <TU_TOKEN>
 
  Exponer el puerto del backen: 
- ```bash 
+   ```bash 
  ./ngrok http 8080
-```
+  ```
 
  Actualizar application.properties con la URL HTTPS generada: 
  mercadopago.base-url=https://{subdominio-ngrok}.ngrok-free.app
@@ -165,8 +165,8 @@ Autenticar: ./ngrok config add-authtoken <TU_TOKEN>
 Variables de Entorno Clave
 
 Crear archivo .env en el backend con:
-```bash
+  ```bash
     CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
     MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
     SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
-```
+  ```
