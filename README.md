@@ -165,8 +165,8 @@ Autenticar: ./ngrok config add-authtoken <TU_TOKEN>
 Variables de Entorno Clave
 
 Crear archivo .env en el backend con:
-bash```
-CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
-MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
+```bash
+    CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+    MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
+    SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
 ```
