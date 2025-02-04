@@ -136,8 +136,6 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
    git clone https://github.com/Sobocles/GymApp.git
 
    Configuración del Backend (Spring Boot)
-bash
-Copy
 
 # 1. Construir proyecto y descargar dependencias
 mvn clean install -DskipTests
