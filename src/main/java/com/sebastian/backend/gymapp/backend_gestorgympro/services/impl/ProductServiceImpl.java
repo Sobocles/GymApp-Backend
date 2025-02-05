@@ -50,18 +50,15 @@ public class ProductServiceImpl implements ProductService {
             // 1) Buscar categoría
             Category categoryEntity = categoryService.getCategoryByName(dto.getCategory());
             if (categoryEntity == null) {
-       
                 throw new IllegalArgumentException("La categoría no existe: " + dto.getCategory());
             }
-
+    
             // 2) Subir imagen (si existe)
             String imageUrl = null;
             if (imageFile != null && !imageFile.isEmpty()) {
                 imageUrl = cloudinaryService.uploadImage(imageFile);
             }
-
-            
-
+    
             // 3) Construir la entidad Product
             Product product = new Product();
             product.setName(dto.getName());
@@ -72,27 +69,37 @@ public class ProductServiceImpl implements ProductService {
             product.setBrand(dto.getBrand());
             product.setFlavor(dto.getFlavor());
             product.setImageUrl(imageUrl);
-
+    
             if (dto.getDiscountStart() != null && !dto.getDiscountStart().isEmpty()) {
-            product.setDiscountStart(LocalDateTime.parse(dto.getDiscountStart()));
-    }
+                product.setDiscountStart(LocalDateTime.parse(dto.getDiscountStart()));
+            }
             if (dto.getDiscountEnd() != null && !dto.getDiscountEnd().isEmpty()) {
                 product.setDiscountEnd(LocalDateTime.parse(dto.getDiscountEnd()));
             }
-
+    
+            // Falta asignar discountPercent y discountReason
+            // Por ejemplo, agregar lo siguiente:
+            if (dto.getDiscountPercent() != null) {
+                product.setDiscountPercent(dto.getDiscountPercent());
+            }
+            if (dto.getDiscountReason() != null && !dto.getDiscountReason().trim().isEmpty()) {
+                product.setDiscountReason(dto.getDiscountReason());
+            }
+    
             // Si no está seteado, inicializamos salesCount
             if (product.getSalesCount() == null) {
                 product.setSalesCount(0);
             }
-
+    
             // 4) Guardar y retornar
             return productRepository.save(product);
-
+    
         } catch (IOException e) {
             // Error subiendo archivo
             throw new RuntimeException("Error subiendo imagen a Cloudinary", e);
         }
     }
+    
 
 
 

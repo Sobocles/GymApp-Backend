@@ -25,10 +25,17 @@ public class MercadoPagoService {
     @Value("${mercadopago.accessToken}")
     private String accessToken;
 
+    @Value("${mercadopago.baseUrl}")
+    private String baseUrl;
+
+    private String notificationUrl;
+
+
     @PostConstruct
     public void init() throws MPException {
-        System.out.println("AQUI ESTA EL ACCES TOKKEN DE MERCADO PAGO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!: " + accessToken);
+
         MercadoPagoConfig.setAccessToken(accessToken);
+        this.notificationUrl = baseUrl + "/payment/notifications";
     }
 
     public Preference createPreference(String title, int quantity, BigDecimal unitPrice, String successUrl, String failureUrl, String pendingUrl, String payerEmail, String externalReference) {
@@ -55,7 +62,7 @@ public class MercadoPagoService {
             PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                     .items(Arrays.asList(itemRequest))
                     .backUrls(backUrls)
-                    .notificationUrl("https://9bba-2800-150-14e-1f21-d8f-7c62-d0e2-21f5.ngrok-free.app/payment/notifications")
+                    .notificationUrl(notificationUrl)
                     .payer(payerRequest)
                     .externalReference(externalReference)
                     .autoReturn("approved")

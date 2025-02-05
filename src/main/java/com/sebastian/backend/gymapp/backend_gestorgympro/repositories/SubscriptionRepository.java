@@ -9,4 +9,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     List<Subscription> findByUserId(Long userId);
     List<Subscription> findByPlanId(Long planId);
     Optional<Subscription> findByPaymentId(Long id);
+    List<Subscription> findByActiveTrue();
 }
