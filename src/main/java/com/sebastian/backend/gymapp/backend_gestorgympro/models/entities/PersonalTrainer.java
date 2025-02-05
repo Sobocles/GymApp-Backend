@@ -1,5 +1,8 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.entities;
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -22,6 +25,107 @@ public class PersonalTrainer {
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(name = "monthly_fee", nullable = false)
+    private BigDecimal monthlyFee;
+
+    // Nuevos campos
+    @Column(name = "title", nullable = true)
+    private String title;
+
+    @Column(name = "studies", nullable = true, length = 2000)
+    private String studies;
+
+    @Column(name = "certifications", nullable = true, length = 2000)
+    private String certifications;
+
+    @Column(name = "description", nullable = true, length = 2000)
+    private String description;
+
+    @ManyToMany(mappedBy = "includedTrainers")
+    private List<Plan> plans;
+
+    @Column(name = "instagram_url", nullable = true)
+    private String instagramUrl;
+    
+    @Column(name = "whatsapp_number", nullable = true)
+    private String whatsappNumber;
+
+    @Column(name = "certification_file_url", nullable = true)
+    private String certificationFileUrl;
+
+    public String getCertificationFileUrl() {
+        return certificationFileUrl;
+    }
+
+    public void setCertificationFileUrl(String certificationFileUrl) {
+        this.certificationFileUrl = certificationFileUrl;
+    }
+
+    public String getInstagramUrl() {
+        return instagramUrl;
+    }
+
+    public void setInstagramUrl(String instagramUrl) {
+        this.instagramUrl = instagramUrl;
+    }
+
+    public String getWhatsappNumber() {
+        return whatsappNumber;
+    }
+
+    public void setWhatsappNumber(String whatsappNumber) {
+        this.whatsappNumber = whatsappNumber;
+    }
+
+    public List<Plan> getPlans() {
+            return plans;
+        }
+
+        public void setPlans(List<Plan> plans) {
+            this.plans = plans;
+        }
+
+    // Getters y Setters para los nuevos campos
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getStudies() {
+        return studies;
+    }
+
+    public void setStudies(String studies) {
+        this.studies = studies;
+    }
+
+    public String getCertifications() {
+        return certifications;
+    }
+
+    public void setCertifications(String certifications) {
+        this.certifications = certifications;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getMonthlyFee() {
+        return monthlyFee;
+    }
+
+    public void setMonthlyFee(BigDecimal monthlyFee) {
+        this.monthlyFee = monthlyFee;
+    }
 
     // Getters y Setters
     public Long getId() {

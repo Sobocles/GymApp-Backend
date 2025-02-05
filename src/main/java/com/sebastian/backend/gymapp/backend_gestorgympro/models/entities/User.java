@@ -15,9 +15,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+
 import java.util.List;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sebastian.backend.gymapp.backend_gestorgympro.models.IUser;
 
 
@@ -32,11 +34,9 @@ public class User implements IUser  {
     
 
     @NotBlank
-    @Size(min = 3, max = 15)
     @Column(unique = true)
     private String username;
 
-    @NotBlank
     private String password;
 
     @NotEmpty
@@ -50,18 +50,55 @@ public class User implements IUser  {
     joinColumns = @JoinColumn(name = "user_id"),
     inverseJoinColumns = @JoinColumn(name = "role_id"),
     uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
-)
+    )
 
     private List<Role> roles;
 
-    @Transient //un campo que es de la clase, que no se mapea a la base de datos como una columna
+ 
+    @OneToMany(mappedBy = "user")
+     private List<Payment> payments;
+
+
+    @OneToMany(mappedBy = "user")
+    @JsonIgnore
+    private List<Subscription> subscriptions;
+
+    @Transient 
     private boolean admin;
 
     @Transient
-    private boolean trainer; // Agregar este campo
+    private boolean trainer; 
 
     @Column(name = "profile_image_url", nullable = true)
     private String profileImageUrl;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
+    public List<Subscription> getSubscriptions() {
+        return subscriptions;
+    }
+
+    public void setSubscriptions(List<Subscription> subscriptions) {
+        this.subscriptions = subscriptions;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
 
     public String getProfileImageUrl() {
         return profileImageUrl;

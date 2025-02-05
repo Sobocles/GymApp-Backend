@@ -18,16 +18,6 @@ public class DtoMapperPersonalTrainer {
         return this;
     }
 
-    public PersonalTrainerDto build() {
-        if (personalTrainer == null) {
-            throw new RuntimeException("Debe pasar el entity personalTrainer!");
-        }
-        return new PersonalTrainerDto(
-                personalTrainer.getId(),
-                personalTrainer.getSpecialization(),
-                personalTrainer.getExperienceYears(),
-                personalTrainer.getAvailability()
-        );
-    }
+
 }
 

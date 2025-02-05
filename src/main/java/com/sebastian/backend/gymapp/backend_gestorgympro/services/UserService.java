@@ -16,6 +16,8 @@ public interface UserService {
 
         List<UserDto> findAll();
 
+        Optional<User> findByEmail(String email);
+
         boolean existsByEmail(String email);
         
         boolean existsByUsername(String username);
@@ -32,8 +34,8 @@ public interface UserService {
 
         void remove(Long id);
 
-        void assignTrainerRole(Long userId, String specialization, Integer experienceYears, Boolean availability);
+        
 
-        UserDto updateProfile(UserRequest user, MultipartFile file, String currentEmail);
+       
 
 }

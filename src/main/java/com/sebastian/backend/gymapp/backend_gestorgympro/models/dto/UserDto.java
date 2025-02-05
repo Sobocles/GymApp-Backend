@@ -1,5 +1,7 @@
 package com.sebastian.backend.gymapp.backend_gestorgympro.models.dto;
 
+import java.util.List;
+
 public class UserDto {
     private Long id;
     private String username;
@@ -8,6 +10,14 @@ public class UserDto {
     private boolean trainer;
     private String profileImageUrl; 
 
+    private List<String> roles; 
+
+    public List<String> getRoles() {
+        return roles;
+    }
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
     public String getProfileImageUrl() {
         return profileImageUrl;
     }
