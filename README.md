@@ -23,7 +23,7 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 ## 🌟 Características  
 
 Usuario 
-ROLE_ADMIN: Kawakami@gmail.com
+ROLE_ADMIN: Kawakami@gmail.com<br>
 contraseña: 123456Kawakami
 
 ### 🛒 **E-commerce de Suplementos**  
@@ -174,12 +174,12 @@ Crear archivo .env en el backend con:
     MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
     SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
   ```
-Para poder realizar una transaccion con mercado pago, se pueden user credenciales de prueba en: https://www.mercadopago.cl/developers/es/docs/your-integrations/test/cards
+Para poder realizar una transaccion con mercado pago, se pueden user credenciales de prueba en: https://www.mercadopago.cl/developers/es/docs/your-integrations/test/cards <br>
 
-Por ejemplo: 
-numero de targeta: 4023 6535 2391 4373
-codigo de seguridad: 123
-Fecha de caducidad: 11/30
-estado de pago: APRO
-Documento de identidad: 123456789
+Por ejemplo:<br>
+numero de targeta: 4023 6535 2391 4373<br>
+codigo de seguridad: 123<br>
+Fecha de caducidad: 11/30<br>
+estado de pago: APRO<br>
+Documento de identidad: 123456789<br>
 
