@@ -146,7 +146,7 @@ contraseña: 123456Kawakami
 
 3. Ejecutar la aplicación Spring Boot:
   ```bash
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   mvn spring-boot:run
   ```
 El servidor API se iniciará en:
   ```bash 
