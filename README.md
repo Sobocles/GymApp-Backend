@@ -22,6 +22,10 @@ Solución todo-en-uno que combina e-commerce de suplementos, gestión de usuario
 
 ## 🌟 Características  
 
+Usuario 
+ROLE_ADMIN: Kawakami@gmail.com
+contraseña: 123456Kawakami
+
 ### 🛒 **E-commerce de Suplementos**  
 - **CRUD de productos** con filtros avanzados (sabor, marca, precio, más vendidos).  
 - **Sistema de ofertas** con descuentos personalizables (razón y porcentaje).  
@@ -154,7 +158,7 @@ Descargar e instalar ngrok https://download.ngrok.com/downloads/windows
 
 Autenticar: ./ngrok config add-authtoken <TU_TOKEN>
 
- Exponer el puerto del backen: 
+ Exponer el puerto del backend: 
    ```bash 
  ./ngrok http 8080
   ```
@@ -170,3 +174,12 @@ Crear archivo .env en el backend con:
     MP_ACCESS_TOKEN=TEST-XXXXXXXXXXXXXXXX
     SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/gympro_db
   ```
+Para poder realizar una transaccion con mercado pago, se pueden user credenciales de prueba en: https://www.mercadopago.cl/developers/es/docs/your-integrations/test/cards
+
+Por ejemplo: 
+numero de targeta: 4023 6535 2391 4373
+codigo de seguridad: 123
+Fecha de caducidad: 11/30
+estado de pago: APRO
+Documento de identidad: 123456789
+
