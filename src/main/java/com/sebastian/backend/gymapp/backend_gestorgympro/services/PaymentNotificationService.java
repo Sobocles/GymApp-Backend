@@ -100,29 +100,26 @@ public class PaymentNotificationService {
                     List<OrderDetail> details = orderDetailRepository.findByPaymentId(dbPayment.getId());
                     for (OrderDetail od : details) {
                         Product p = od.getProduct();
-
                         System.out.println("Producto antes de actualizar:");
                         System.out.println("Nombre: " + p.getName());
                         System.out.println("Stock actual: " + p.getStock());
                         System.out.println("Cantidad comprada: " + od.getQuantity());
                     
-                        // Incrementar salesCount por la cantidad comprada
+                        // Incrementar el salesCount (ventas totales)
                         int nuevoSalesCount = p.getSalesCount() + od.getQuantity();
                         p.setSalesCount(nuevoSalesCount);
-
-                        System.out.println("salesCount"+p.getSalesCount());
                     
-                        // Restar stock por la cantidad comprada
-                        p.setStock(p.getStock() - od.getQuantity());
-
-                        System.out.println("cantidad de stock"+p.getStock());
+                        // Calcular el nuevo stock y evitar que sea negativo
+                        int nuevoStock = p.getStock() - od.getQuantity();
+                        if (nuevoStock < 0) {
+                            nuevoStock = 0;  // Se asegura que el stock mínimo sea 0
+                        }
+                        p.setStock(nuevoStock);
                     
-                        // Guardar el producto actualizado
+                        System.out.println("Stock actualizado: " + p.getStock());
+                    
+                        // Guardar el producto actualizado en la base de datos
                         productRepository.save(p);
-                    
-                        System.out.println("Ventas y stock actualizados para el producto: " + p.getName() +
-                                           ". Ventas totales: " + nuevoSalesCount +
-                                           ", Stock restante: " + p.getStock());
                     }
                     
                 }
