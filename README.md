@@ -57,9 +57,14 @@ contraseña: 123456Kawakami
 ---
 
 ## 🎥 Demo  
-![Dashboard Administrativo](https://via.placeholder.com/600x400)  
-**Enlace a Demo**: [demo.gympro.com](https://...) *(próximamente)*  
-
+**Enlace a Demo**:<br>
+https://i.imgur.com/X9hTezN.png<br>
+https://i.imgur.com/sx1uKPU.png<br>
+https://i.imgur.com/7wLELZ1.png<br>
+https://i.imgur.com/3dZNSDE.png<br>
+https://i.imgur.com/wt48Jpr.png<br>
+https://i.imgur.com/L6LnRP7.png<br>
+https://i.imgur.com/6p89H9k.png<br>
 ---
 
 ## 🛠️ Tecnologías  
