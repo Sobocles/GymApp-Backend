@@ -65,8 +65,7 @@ public class TrainerController {
 public ResponseEntity<?> assignTrainerRole(
     @PathVariable Long id,
 
-    // Todos los campos de tipo texto/numéricos en @RequestParam
-    // (o @RequestPart si lo prefieres, pero para Strings y Numbers suele bastar @RequestParam):
+
     @RequestParam("specialization") String specialization,
     @RequestParam("experienceYears") Integer experienceYears,
     @RequestParam("availability") Boolean availability,
@@ -78,12 +77,11 @@ public ResponseEntity<?> assignTrainerRole(
     @RequestParam(value = "instagramUrl", required = false) String instagramUrl,
     @RequestParam(value = "whatsappNumber", required = false) String whatsappNumber,
 
-    // El archivo se envía como @RequestPart 
-    // (aunque en muchos casos puede funcionar @RequestParam si es un solo archivo)
+
     @RequestPart(value = "certificationFile", required = false) MultipartFile certificationFile
 ) {
     try {
-        // 1) Construir la clase TrainerAssignmentRequest con todos esos campos
+ 
         TrainerAssignmentRequest request = new TrainerAssignmentRequest();
         request.setSpecialization(specialization);
         request.setExperienceYears(experienceYears);
@@ -108,7 +106,7 @@ public ResponseEntity<?> assignTrainerRole(
                 .body("Error al subir el archivo de certificación: " + e.getMessage());
 
     } catch (Exception e) {
-        // Cualquier otra excepción en la lógica
+
         return ResponseEntity.badRequest()
                 .body("Error en la asignación: " + e.getMessage());
     }
