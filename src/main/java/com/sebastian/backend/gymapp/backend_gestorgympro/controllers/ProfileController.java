@@ -29,12 +29,16 @@ public class ProfileController {
             @RequestParam(value = "username", required = false) String username,
             @RequestParam(value = "email", required = false) String email,
             @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "file", required = false) MultipartFile file) {
+            @RequestParam(value = "file", required = false) MultipartFile file,
+            @RequestParam(value = "instagramUrl", required = false) String instagramUrl,
+            @RequestParam(value = "whatsappNumber", required = false) String whatsappNumber) {
         try {
             UserRequest userRequest = new UserRequest();
             userRequest.setUsername(username);
             userRequest.setEmail(email);
             userRequest.setPassword(password);
+            userRequest.setInstagramUrl(instagramUrl);
+            userRequest.setWhatsappNumber(whatsappNumber);
             System.out.println("userRequest"+userRequest);
             // Obtener el email actual del usuario autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

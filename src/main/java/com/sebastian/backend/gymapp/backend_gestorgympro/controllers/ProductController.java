@@ -53,61 +53,29 @@ public class ProductController {
     @Autowired
     private ProductService productoService;
 
-    @PostMapping(value = "/products",   consumes = {
-        MediaType.MULTIPART_FORM_DATA_VALUE,
-        MediaType.APPLICATION_OCTET_STREAM_VALUE  // <-- Permitir octet-stream
-      })
+    @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<?> createProduct(
-        @RequestParam("name") String name,
-        @RequestParam("description") String description,
-        @RequestParam("category") String category,
-        @RequestParam("price") Double price,
-        @RequestParam("stock") Integer stock,
-        @RequestParam("brand") String brand,
-        @RequestParam("flavor") String flavor,
-        @RequestPart(value = "image", required = false) MultipartFile image,
-        @RequestParam(value = "discountPercent", required = false) Integer discountPercent,
-        @RequestParam(value = "discountReason", required = false) String discountReason,
-        @RequestParam(value = "discountStart", required = false) String discountStartStr,
-        @RequestParam(value = "discountEnd", required = false) String discountEndStr
+        @Valid @ModelAttribute ProductDto dto, 
+        BindingResult result,
+        @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-        // 1) Construir el DTO
-        ProductDto dto = new ProductDto();
-        dto.setName(name);
-        dto.setDescription(description);
-        dto.setCategory(category);
-        dto.setPrice(price);
-        dto.setStock(stock);
-        dto.setBrand(brand);
-        dto.setFlavor(flavor);
-        dto.setDiscountPercent(discountPercent);
-        dto.setDiscountReason(discountReason);
-        dto.setDiscountStart(discountStartStr);
-        dto.setDiscountEnd(discountEndStr);
-    
+        if(result.hasErrors()){
+            return validation(result);
+        }
+        
         try {
-            // 2) Llamar al servicio, que se encargará de crear el producto
+            // Se delega la creación del producto al servicio
             Product createdProduct = productService.createProduct(dto, image);
-    
-            // 3) Retornar la respuesta exitosa (código 200)
             return ResponseEntity.ok(createdProduct);
-    
         } catch (IllegalArgumentException ex) {
-            // Ejemplo: categoría no existe, o algún otro error de argumentos
             return ResponseEntity.badRequest().body("Error: " + ex.getMessage());
-    
         } catch (RuntimeException ex) {
-            // Ejemplo: error subiendo imagen a Cloudinary, etc.
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error interno al crear producto: " + ex.getMessage());
+                                 .body("Error interno al crear producto: " + ex.getMessage());
         }
     }
     
-    
-
-
-
     
     @GetMapping("/products/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable Long id) {

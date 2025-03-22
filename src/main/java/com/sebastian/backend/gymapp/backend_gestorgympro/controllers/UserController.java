@@ -111,7 +111,7 @@ private TrainerService trainerService;
         // Generar contraseña aleatoria en el backend, ignorar la que venga del front.
         String randomPassword = RandomPasswordUtil.generateRandomPassword();
     
-        // Sobrescribimos cualquiera que venga del front.
+
         user.setPassword(randomPassword);
     
         // Llamamos al service para guardar (allí se encripta y se envía correo).
@@ -177,8 +177,8 @@ public ResponseEntity<?> registerUser(@Valid @RequestBody User user, BindingResu
     user.setAdmin(false); // Asegurarse de que no pueda registrarse como admin
     user.setTrainer(false); // Asegurarse de que no pueda registrarse como entrenador
 
-    service.save(user);
-    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Usuario registrado con éxito"));
+    UserDto saved = service.save(user);
+    return ResponseEntity.status(HttpStatus.CREATED).body(saved);
 }
 
 
